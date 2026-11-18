@@ -1,0 +1,14 @@
+Title,Short title,Function,Notes
+Account Executive,,Sales,Requester: submits contracts to the playbook and sends the escalation requests. No approval authority
+Contracts Manager,,Legal,"Record custodian: receives every final approval and stores the approval record, the evidence and the signed contract together. Also approves pre-approved positions and first-step legal deviations"
+Deal Desk Manager,,Sales Operations,"Before signature, checks the final contract against the approvals. Also approves first-step commercial deviations"
+Security Manager,,Security,First-step security deviations
+Associate General Counsel,,Legal,
+VP Customer Success,,Customer Success,
+VP Finance,,Finance,
+VP Product,,Product,
+Chief Information Security Officer,CISO,Security,"Appears at several levels, usually jointly"
+General Counsel,,Legal,Owns this matrix; receives anything the matrix does not cover
+Chief Financial Officer,CFO,Finance,
+Chief Product Officer,,Product,
+Chief Executive Officer,CEO,Executive,Final authority where the matrix names CEO

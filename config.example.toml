@@ -1,0 +1,89 @@
+# Copy this file to config.toml and edit. config.toml is git-ignored.
+# Paths are relative to this file. Leave a section out to keep the ACME example.
+
+[app]
+# mode = "demo": the AI plays the approvers, so the whole process can be shown without waiting for people. Every record
+#                says SIMULATED. No email is ever sent, and only fictional data may be used.
+# mode = "live": real approvers decide in the portal and real email goes out. Needs the setup gate (see [environment]).
+mode = "demo"
+
+[demo]
+ai_approvers = true                            # in demo mode, the AI answers each request. Set false to play approvers yourself
+silent_titles = []                             # titles that never answer, to show reminders and escalation, for example ["VP Finance"]
+delegating_titles = []                         # titles that hand the request to their fallback contact in people.csv
+delay_seconds = 0                              # pause before each AI approver answers
+
+[matrix]
+folder = "examples/acme-saas/doa-matrix"      # doa_matrix.csv, roles.csv, people.csv, settings.csv
+
+[contracts]
+standard_text = "examples/acme-saas/contracts/ACME_SaaS_Agreement_v1.0.txt"       # read by the AI
+standard_download = "examples/acme-saas/contracts/ACME_SaaS_Agreement_v1.0.docx"  # offered to sellers
+
+[model]
+# backend: "claude-cli" | "anthropic-api" | "openai-compatible" | "command"
+#   claude-cli         the claude command on this machine; no key needed
+#   anthropic-api      Anthropic's API
+#   openai-compatible  any server that speaks the OpenAI chat API: Ollama, vLLM, llama.cpp,
+#                      LM Studio, OpenRouter, and most hosted or private deployments (open weights included)
+#   command            any program that reads the prompt on stdin and prints the answer
+backend = "claude-cli"
+name = ""                                      # model name, for example "llama3.1:70b"
+base_url = ""                                  # openai-compatible only, for example "http://localhost:11434/v1"
+api_key_env = ""                               # the NAME of an environment variable. Never put a key here.
+command = ""                                   # command backend only
+max_tokens = 32000                             # room for the answer plus any hidden thinking; a cut-off answer is refused, not used
+reasoning_effort = ""                           # thinking models only, openai-compatible only: "", "off", "minimal", "low", "medium", "high". Lower is faster and cheaper; blank uses the model's default
+timeout_seconds = 900
+
+[auth]
+# provider: "none" | "local" | "proxy-header"
+#   none          demo only: no passwords, pick who to act as
+#   local         usernames and passwords held in users_file as salted hashes. For early use and small teams.
+#                 Add people with: python tools/users.py add you@company.com "Your Name"
+#                 Needs HTTPS (a reverse proxy) before real use.
+#   proxy-header  behind your single sign-on proxy, which passes the verified email in proxy_header
+provider = "none"
+users_file = "users.csv"                       # git-ignored; never publish it
+proxy_header = "X-Forwarded-Email"
+session_hours = 12
+
+[portal]
+base_url = "http://localhost:8765"             # the address approvers open; use https in real use
+send_mode = "auto"                             # "auto": requests go out when ready. "confirm": the seller clicks once
+allow_delegation = true                        # approvers may hand a request to a colleague at their company
+
+[reminders]
+# An approver who has not answered is reminded, then escalated. The clock counts business days from the day the
+# request was created. Silence is never approval: nothing is decided for anyone.
+enabled = true
+first_after_days = 2                           # first reminder to the approver (and any delegate)
+second_after_days = 4                          # second reminder
+escalate_after_days = 7                        # the seller and the matrix owner are told together, and any fallback contact is added
+holidays = []                                  # dates to skip, for example ["2026-12-25"]
+check_minutes = 15                             # how often the app looks for anything due
+
+[ledger]
+path = "ledger.db"                             # git-ignored. Holds approvers' names and deal facts: keep it private and back it up
+min_requests = 20                              # a rate is shown only once a group has this many requests
+viewers = []                                   # emails who may read the audit pages besides the matrix owner
+
+[mail]
+# Notifications carry a link; decisions are made in the portal and email replies are not read.
+backend = "file"                               # "file": write each message to the run folder. "smtp": send it
+host = ""
+port = 587
+starttls = true
+user = ""
+password_env = ""                              # the NAME of an environment variable. Never put the password here.
+from_address = ""
+
+[environment]
+# The setup gate (docs/ai-environment.md). While stand_in_data_only is true, only fictional data
+# should be used and the app shows a banner. Set it to false for real deals, and fill in the rest.
+stand_in_data_only = true
+name = ""                                      # environment and model version, for the record header
+approved_by = ""
+approved_on = ""
+zero_data_retention = false
+private_instance = false

@@ -1,0 +1,27 @@
+# macOS and exFAT metadata
+.DS_Store
+._*
+
+# Build output and dependencies
+node_modules/
+__pycache__/
+*.pdf
+*.png
+*.jpg
+~$*
+
+# Local-only files (real inboxes, notes, drafts not for publishing)
+local/
+runs/app-*/
+__pycache__/
+
+# Local settings and keys
+config.toml
+.env
+
+# Local-only submission files
+final-package/
+users.csv
+.secret
+ledger.db
+ledger.db-journal

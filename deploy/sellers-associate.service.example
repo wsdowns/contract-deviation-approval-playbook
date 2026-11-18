@@ -1,0 +1,25 @@
+# Copy to /etc/systemd/system/sellers-associate.service, edit the paths and user, then:
+#   sudo systemctl daemon-reload && sudo systemctl enable --now sellers-associate
+# Secrets live in /etc/sellers-associate.env (chmod 600, owned by root), never in config.toml:
+#   ANTHROPIC_API_KEY=...
+#   MAIL_PASSWORD=...
+#   DOA_SECRET=a-long-random-string      (signs session cookies; keep it the same across restarts)
+[Unit]
+Description=Seller's Associate
+After=network.target
+
+[Service]
+User=sellers
+WorkingDirectory=/srv/sellers-associate
+EnvironmentFile=/etc/sellers-associate.env
+ExecStart=/usr/bin/python3 app/server.py
+Restart=on-failure
+RestartSec=5
+# Keep the app out of everything but its own folder.
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/srv/sellers-associate
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

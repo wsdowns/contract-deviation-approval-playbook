@@ -1,0 +1,14 @@
+Title,Name,Email,Fallback name,Fallback email
+Account Executive,Alex Easton,alex.easton@acme.example,,
+Contracts Manager,Casey Morrow,casey.morrow@acme.example,,
+Deal Desk Manager,Darla Denkins,darla.denkins@acme.example,,
+Security Manager,Sam Mercer,sam.mercer@acme.example,,
+Associate General Counsel,Andrea G. Collins,andrea.collins@acme.example,,
+VP Customer Success,Cassie Sutton,cassie.sutton@acme.example,,
+VP Finance,Vivian Fairfax,vivian.fairfax@acme.example,Cassie Sutton,cassie.sutton@acme.example
+VP Product,Valerie Price,valerie.price@acme.example,,
+Chief Information Security Officer,Cy Isom,cy.isom@acme.example,,
+General Counsel,Grace Colton,grace.colton@acme.example,,
+Chief Financial Officer,Clifford F. Owens,clifford.owens@acme.example,,
+Chief Product Officer,Chris P. Olsen,chris.olsen@acme.example,,
+Chief Executive Officer,Celeste E. Overton,celeste.overton@acme.example,,

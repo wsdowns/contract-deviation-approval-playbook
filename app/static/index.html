@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contract deviation approvals</title>
+<style>
+:root{--bg:#fafaf8;--card:#fff;--ink:#1f1f1d;--mute:#6b6a64;--line:#e3e1da;--acc:#185fa5;--accbg:#e6f1fb;--ok:#27500a;--okbg:#eaf3de;--no:#791f1f;--nobg:#fcebeb;--wa:#633806;--wabg:#faeeda;--onacc:#fff}
+@media(prefers-color-scheme:dark){:root{--bg:#1c1c1a;--card:#262624;--ink:#ecebe6;--mute:#a3a29a;--line:#3a3a37;--acc:#85b7eb;--accbg:#0c447c;--ok:#c0dd97;--okbg:#27500a;--no:#f7c1c1;--nobg:#791f1f;--wa:#fac775;--wabg:#633806;--onacc:#0b0b0b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+header h1{font-size:17px;margin:0;font-weight:500}
+header span{font-size:13px;color:var(--mute)}
+main{max-width:980px;margin:0 auto;padding:16px 20px 60px}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+nav button{font:inherit;font-size:13px;padding:5px 12px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;cursor:pointer}
+nav button.on{border-color:var(--acc);background:var(--accbg);color:var(--acc)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+h2{font-size:18px;font-weight:500;margin:0 0 4px}
+h3{font-size:15px;font-weight:500;margin:14px 0 4px}
+p.sub{color:var(--mute);margin:0 0 12px;font-size:14px}
+button.go{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--acc);background:var(--acc);color:var(--onacc);cursor:pointer}
+button.go:disabled{opacity:.5;cursor:default}
+button.alt{font:inherit;padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+textarea{width:100%;font:13px/1.5 ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--bg);color:var(--ink)}
+table{border-collapse:collapse;width:100%;font-size:13px;margin:8px 0}
+th,td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+th{background:var(--bg);font-weight:500}
+pre.msg{white-space:pre-wrap;font:13px/1.5 ui-monospace,Menlo,monospace;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;margin:6px 0}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.tag{font-size:12px;color:var(--mute)}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:14px;margin:0 0 12px}.drop.over{border-color:var(--acc);background:#eef4fb}.drop input{display:block;margin-bottom:6px}
+.chip{font-size:12px;padding:1px 8px;border-radius:8px;background:var(--accbg);color:var(--acc)}
+.chip.ok{background:var(--okbg);color:var(--ok)}.chip.no{background:var(--nobg);color:var(--no)}.chip.wa{background:var(--wabg);color:var(--wa)}
+.busy{border:1px solid var(--acc);background:var(--accbg);color:var(--acc);padding:10px 14px;border-radius:8px;margin-bottom:12px}
+.err{border:1px solid var(--no);background:var(--nobg);color:var(--no);padding:10px 14px;border-radius:8px;margin-bottom:12px;white-space:pre-wrap}
+details{margin-top:10px}summary{cursor:pointer;color:var(--mute);font-size:13px}
+.md p{margin:6px 0}.md ul{margin:6px 0 6px 20px;padding:0}.md h1,.md h2,.md h3{margin:14px 0 4px;font-size:15px;font-weight:500}
+a{color:var(--acc)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:8px}
+.tile{display:block;text-align:left;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;text-decoration:none}
+.tile:hover{border-color:var(--acc)}.tile.main{border:2px solid var(--acc)}
+.tile b{display:block;font-weight:500;font-size:15px;margin-bottom:2px}.tile span{font-size:13px;color:var(--mute)}
+.bigtiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:12px 0 18px}
+.tile.big{padding:26px 22px;min-height:118px;border:2px solid var(--acc)}.tile.big b{font-size:19px;margin-bottom:6px}.tile.big span{font-size:14px}
+.tiles.small{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.tiles.small .tile{padding:9px 11px}.tiles.small .tile b{font-size:13px}.tiles.small .tile span{font-size:12px}
+.mi{font-size:13px}.mi.warn{color:var(--no)}tr.sel td{background:var(--accbg)}tr.top td{border-bottom:0}tr.mrow td{border-top:0;padding-top:0}
+.logo{display:inline-block;width:26px;height:26px;border-radius:6px;background:#1f2a44;color:#fff;text-align:center;line-height:26px;font-size:13px;font-weight:500;margin-right:8px;vertical-align:middle}
+</style>
+</head>
+<body>
+<header><h1><span class="logo">A</span>ACME Corporation · Seller's Associate</h1><span id="hdr"></span></header>
+<main>
+<nav id="nav"></nav>
+<div id="busy"></div>
+<div id="screen"></div>
+</main>
+<script>
+var S=null,cur=null,userPicked=false,pick=null;
+var PAGES=['','Summary','Requests/Status','Appeals','Final Check'];
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function inline(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<b style="font-weight:500">$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>')}
+function md(t){
+  if(!t)return '';var L=t.split('\n'),o=[],i=0;
+  while(i<L.length){var l=L[i];
+    if(/^\s*\|/.test(l)&&i+1<L.length&&/^\s*\|[\s:|-]+\|?\s*$/.test(L[i+1])){
+      var cells=function(r){return r.trim().replace(/^\||\|$/g,'').split('|').map(function(c){return c.trim()})};
+      var h=cells(l);i+=2;var rows=[];
+      while(i<L.length&&/^\s*\|/.test(L[i])){rows.push(cells(L[i]));i++}
+      o.push('<table><tr>'+h.map(function(c){return '<th>'+inline(c)+'</th>'}).join('')+'</tr>'+rows.map(function(r){return '<tr>'+r.map(function(c){return '<td>'+chip(inline(c))+'</td>'}).join('')+'</tr>'}).join('')+'</table>');continue}
+    var m=l.match(/^(#{1,4})\s+(.*)/);
+    if(m){o.push('<h3>'+inline(m[2])+'</h3>');i++;continue}
+    if(/^\s*[-*]\s+/.test(l)){var li=[];while(i<L.length&&/^\s*[-*]\s+/.test(L[i])){li.push('<li>'+inline(L[i].replace(/^\s*[-*]\s+/,''))+'</li>');i++}o.push('<ul>'+li.join('')+'</ul>');continue}
+    if(l.trim()===''){i++;continue}
+    var p=[l];i++;while(i<L.length&&L[i].trim()!==''&&!/^(#{1,4}\s|\s*\||\s*[-*]\s)/.test(L[i])){p.push(L[i]);i++}
+    o.push('<p>'+inline(p.join(' '))+'</p>')}
+  return '<div class="md">'+o.join('')+'</div>'}
+function chip(h){
+  return h.replace(/^(Approved \(pre-approved\)|Approved|Conditional)$/,'<span class="chip ok">$1</span>')
+          .replace(/^(Denied|Not conceded)$/,'<span class="chip no">$1</span>')
+          .replace(/^(Wrong authority|Authority unclear|Unclear|Partial|Missing co-approval|Not in matrix|Not approvable)$/,'<span class="chip wa">$1</span>')}
+var RUNID=null;try{RUNID=sessionStorage.getItem('deal')}catch(e){}
+function setDeal(n){RUNID=n||null;try{if(RUNID)sessionStorage.setItem('deal',RUNID);else sessionStorage.removeItem('deal')}catch(e){}}
+async function api(p,b){ // every call says which deal this screen is working on, so tabs and deals never interfere
+  if(b!==undefined&&b.run===undefined)b.run=RUNID||'';
+  var url=b===undefined&&p==='/api/state'?p+'?run='+encodeURIComponent(RUNID||''):p;
+  var r=await fetch(url,{method:b===undefined?'GET':'POST',headers:{'Content-Type':'application/json'},body:b===undefined?undefined:JSON.stringify(b)});return r.json()}
+function nav(){var n=document.getElementById('nav');n.innerHTML='';[['Home',-1],['Contracts',0]].forEach(function(p){var b=document.createElement('button');b.textContent=p[0];if((p[1]===-1&&cur<0)||(p[1]===0&&cur>=0))b.className='on';b.onclick=function(){go(p[1])};n.appendChild(b)})}
+function requestsOf(t){return t.split(/\n#{2,4}\s*Request\s*\d+[^\n]*\n/).slice(1).map(function(b){return b.split(/\n#{1,3}\s+(?!Request)/)[0].trim()})}
+function batch(t){return t.split(/\n#{2,4}\s*Request\s*\d+[^\n]*\n/)[0]}
+async function act(path,body,after){
+  var r=await api(path,body);
+  if(r.error){alert(r.error)}
+  await load();if(after)after(r)}
+function home(){
+  var h='<div class="card"><p class="tag" style="margin:0 0 4px">Contract Deviation Approval Playbook</p><h2 style="font-size:22px">Know who approved every change</h2>';
+  h+='<p class="sub" style="max-width:640px;font-size:15px">When a customer changes the contract, this assistant finds each change, looks up who has authority to approve it, drafts the request, and records what each approver actually decided. You negotiate. Approvers decide. The record is proof of authority for the changes, not proof of the changes.</p>';
+  h+='<div class="bigtiles"><button class="tile big" onclick="gotoContracts(\'demo\')"><b>Start Here: Demo (Staged Examples)</b><span>Run the whole process on a prepared case. Kept apart from your own contracts.</span></button><button class="tile big" onclick="gotoContracts(\'real\')"><b>Seller\'s Associate: Your Contracts</b><span>Upload a redline, or pick up one you\'ve already started.</span></button></div>';
+  h+='<div class="tiles small"><a class="tile" href="/files/standard.docx"><b>Download ACME\'s standard contract</b><span>The base terms every change is measured against.</span></a><button class="tile" onclick="go(-3)"><b>Approval matrix</b><span>Who may approve what.</span></button><a class="tile" href="/audit"><b>Audit the approvers</b><span>For the matrix owner.</span></a><button class="tile" onclick="go(-4)"><b>How it works</b><span>The steps and who does what.</span></button></div>';
+  h+='<p class="tag" style="margin-top:14px">Demo environment: fictional customers, simulated mailbox, nothing is sent.</p></div>';
+  return h}
+var CTX='real';try{CTX=sessionStorage.getItem('ctx')||'real'}catch(e){}
+function gotoContracts(c){CTX=c;try{sessionStorage.setItem('ctx',c)}catch(e){}NOTICE='';ARCHIVING=null;cur=0;userPicked=true;draw()}
+function go(n){if(n!==0)NOTICE='';cur=n;userPicked=true;if(n===-3&&!M)api('/api/matrix').then(function(m){M=m;draw()});draw()}
+var M=null;
+function table(rows){return '<table><tr>'+rows[0].map(function(c){return '<th>'+esc(c)+'</th>'}).join('')+'</tr>'+rows.slice(1).map(function(r){return '<tr>'+r.map(function(c){return '<td>'+esc(c)+'</td>'}).join('')+'</tr>'}).join('')+'</table>'}
+function how(){
+  return '<div class="card"><h2>How it works</h2><p class="sub">The app finds, routes and records. People approve.</p><ol><li><b>Home.</b> Choose Start Here: Demo, or Seller\'s Associate: Your Contracts.</li><li><b>Contracts.</b> Upload a redline, or start a staged example. Each contract in the list has its own steps, and the contract you pick stays selected on every page.</li><li><b>Summary.</b> The changes, the matrix rule and the approver for each. The requests go out from here, copied to you.</li><li><b>Requests/Status.</b> Where every change stands, with each approver\'s exact words. The replies are below it.</li><li><b>Appeals.</b> If a change is denied, you can appeal once to the same approver, with new context if something about the deal is special. After that, the decision stands.</li><li><b>Final Check.</b> Upload the contract at its latest revision. It passes only if every change in it was approved, and if it fails it shows where.</li><li><b>Archive.</b> When a deal is finished, archive it. Its open requests are withdrawn and it leaves your list.</li></ol><p class="tag">The deal desk manager checks the record before signature. The contracts manager files the original replies.</p></div>'}
+function demoPicker(){
+  var id=pick||Object.keys(S.cases)[0],c=S.cases[id],prof=c.profile,h='';
+    h+='<div class="card"><h2>Start a staged example</h2><p class="sub">A prepared case, so you can watch the whole workflow without a real contract. It is a separate deal: it never touches your own uploads. Choose the case. '+(c.kind==='paper'?'The customer sent its own agreement, with no redline.':'The customer sent a redline of ACME\'s agreement.')+' In real life the CRM would fill in the deal profile. Edit it if you like.</p>';
+    h+='<p><select id="casesel" onchange="pickCase(this.value)">'+Object.keys(S.cases).map(function(k){return '<option value="'+k+'"'+(k===id?' selected':'')+'>'+esc(S.cases[k].title)+'</option>'}).join('')+'</select></p>';
+    h+='<p>'+c.links.map(function(l){return '<a href="'+l.href+'" target="_blank">'+esc(l.label)+'</a>'}).join(' &nbsp;|&nbsp; ')+'</p>';
+    h+='<h3>Deal profile</h3><textarea id="profile" rows="14">'+esc(prof)+'</textarea>';
+    h+='<div class="row"><button class="go" id="startBtn" onclick="startRun()">Find the changes</button><span class="tag">Takes a few minutes. Nothing is sent to anyone.</span></div></div>';
+  
+  return h}
+function screens(){
+  var h='';
+  if(cur===-1)return home();
+  if(cur===-3)return '<div class="card"><h2>Approval matrix</h2><p class="sub">Who may approve each kind of change, by level.</p>'+(M?table(M.doa_matrix)+'<h3>Who holds each title</h3>'+table(M.people)+'<h3>Process roles</h3>'+table(M.settings):'<p>Loading.</p>')+'</div>';
+  if(cur===-4)return how();
+  if(cur>=1&&!RUNID)return noContract();
+  if(cur===0)return contractsPage();
+  if(cur===1){
+    h+=uploadedInfo()+(S.signed_check?'<div class="card"><h2>Signed copy check</h2>'+md(S.signed_check)+'</div>':'');
+    h+='<div class="card"><h2>Summary</h2><p class="sub">What the AI found, who may approve each change, and the requests it drafted. Fix anything it misread before you send.</p>';
+    if(!S.stage3)h+='<p>Nothing yet. Start in step 1.</p>';
+    else{if(S.send_problem)h+='<div class="err">'+esc(S.send_problem)+'</div>';h+='<h3>The changes</h3>'+md(S.stage1)+'<h3>Who may approve</h3>'+md(S.stage2)+'<h3>Batch summary</h3>'+md(batch(S.stage3));
+      var rq=requestsOf(S.stage3);h+='<details><summary>Read the '+rq.length+' drafted requests</summary>'+rq.map(function(r){return '<pre class="msg">'+esc(r)+'</pre>'}).join('')+'</details>';
+      h+='<div class="row">'+(S.outbox.length?'<span class="chip ok">Sent</span>':S.send_mode==='auto'&&!S.send_problem?'<span class="tag">Requests are sent automatically.</span>':'<button class="go" onclick="sendAll(\'stage3.md\')">Confirm and send '+rq.length+' requests</button><span class="tag">One confirmation sends all of them to the simulated mailbox.</span>')+'</div>'}
+    h+='</div>'}
+  if(cur===2){
+    var R=S.record||[];
+    h+='<div class="card"><h2>Requests and status</h2>';
+    if(!R.length&&!S.portal.length)h+='<p>Nothing sent yet.</p>';
+    else{
+      h+='<p class="sub">Where every change stands. Approvers decide in the portal, and this page updates by itself.</p>'+tally(R);
+      if(S.mode==='demo'&&S.portal.length)h+='<div class="row"><button class="alt" onclick="advanceDay()">Move the demo clock to the next business day</button><span class="tag">Shows reminders and escalation without waiting. Clock is '+S.demo.days+' day'+(S.demo.days===1?'':'s')+' ahead.</span></div>';
+      h+='<table><tr><th>ID</th><th>Change</th><th>Approver</th><th>Status</th><th>Decision (exact words)</th><th>Conditions</th></tr>'+R.map(function(r){
+        var more=S.portal.filter(function(q){return q.dev===r.id&&q.status==='open'}).map(function(q){return (q.escalated?' <span class="chip no">Escalated</span>':q.reminders&&q.reminders.length?' <span class="chip">Reminded '+q.reminders.length+'x</span>':'')+(q.delegations.length?' <span class="tag">delegated to '+esc(q.delegations[q.delegations.length-1].name)+'</span>':'')+(q.questions.length?' <span class="chip">'+q.questions.length+' question'+(q.questions.length===1?'':'s')+'</span>':'')}).join('');
+        return '<tr><td>'+esc(r.id)+'</td><td>'+esc(r.change)+'</td><td>'+esc(r.approver)+'</td><td><span class="chip '+chipClass(r.status)+'">'+esc(r.status)+'</span>'+(/Simulated/.test(r.notes||'')?' <span class="chip">Simulated</span>':'')+more+'</td><td>'+esc(r.decision_words)+'</td><td>'+(r.conditions&&r.conditions!=='none'?esc(r.conditions):'')+'</td></tr>'}).join('')+'</table>';
+      S.portal.forEach(function(q){q.questions.forEach(function(x){h+='<p class="tag">Question from '+esc(x.by)+' on '+esc(q.subject)+': '+esc(x.text)+'</p>'})})}
+    h+='</div>';
+    h+='<div class="card"><h3>Requests Sent</h3>'+(S.outbox.length?S.outbox.map(function(m){return '<details><summary>'+esc(m.name)+'</summary><pre class="msg">'+esc(m.text)+'</pre></details>'}).join(''):'<p class="tag">Nothing sent yet.</p>')+'</div>';
+    h+='<div class="card"><h3>Approver Response</h3>'+(S.inbox.length?S.inbox.map(function(m){return '<details><summary>'+esc(m.name)+'</summary><pre class="msg">'+esc(m.text)+'</pre></details>'}).join(''):'<p class="tag">No responses yet.</p>')+'</div>'}
+  if(cur===3)h+=appealsPage();
+  if(cur===4)h+=finalPage();
+  if(cur>=1&&cur<=4)h=contractBar(PAGES[cur])+h;
+  return h}
+function draw(){
+  nav();document.getElementById('hdr').innerHTML='<a href="/portal">Approver portal</a> &nbsp;·&nbsp; <a href="'+(S.provider==='none'?'/login">Act as someone else':'/logout">Sign out')+'</a>';var j=S.job,b=document.getElementById('busy');
+  var demo=S.mode==='demo',demoBanner=demo?'<div class="busy">Demo mode: simulated approvers, nothing is emailed. Use fictional data only. Records here are not proof of authority.</div>':'';var ev=S.env,banner=demoBanner+(ev.problem?'<div class="err">'+esc(ev.problem)+'</div>':ev.stand_in&&!demo?'<div class="busy">Stand-in data only. Model: '+esc(ev.backend)+(ev.model?' / '+esc(ev.model):'')+'. Do not enter a real customer\'s contract.</div>':'');
+  b.innerHTML=banner+(cur<1?'':j.status==='running'?'<div class="busy">Working: '+esc(j.message)+'. This takes a few minutes.</div>':j.status==='error'?'<div class="err">The step failed.\n'+esc(j.message)+'</div>':'');
+  document.getElementById('screen').innerHTML=screens();
+  /* only a contract's own screens wait for its analysis; the Contracts page never does */
+  var d=document.querySelectorAll('button.go');d.forEach(function(x){x.disabled=cur>=1&&j.status==='running'})}
+async function load(){S=await api('/api/state');if(RUNID&&!S.run)setDeal(null);if(cur===null)cur=-1;draw()}
+async function advanceDay(){var r=await api('/api/demo/advance',{});if(r.error){alert(r.error)}else{alert('Clock moved to '+r.day+'.\n'+(r.done.length?r.done.join('\n'):'Nothing was due.'))}await load()}
+var NOTICE='';
+var DOT={analyzing:'wa',failed:'no',held:'no',stopped:'no',ready:'',waiting:'wa',decided:'ok',checked:'ok'};
+var LABEL={analyzing:'Analyzing',failed:'Failed',held:'Held',stopped:'Stopped',ready:'Ready to review',waiting:'Waiting on approvers',decided:'All decided',checked:'Checked'};
+var ARCHIVING=null;
+function dealsCard(){
+  var demo=CTX==='demo',list=(S.deals||[]).filter(function(d){return !!d.demo===demo}),h='<div id="deals">';
+  if(list.length){
+    h+='<div class="card"><h2>'+(demo?'Demo contracts':'Your contracts')+'</h2><p class="sub">Pick a step under a contract. The contract you pick stays selected on every page.</p><table><tr><th>Contract</th><th>Status</th></tr>'+list.map(function(d){
+      var menu=[['Summary',1],['Requests/Status',2],['Appeals',3],['Final Check',4]].map(function(p){return '<a href="#" class="mi" onclick="openDealPage(\''+d.name+'\','+p[1]+');return false">'+p[0]+'</a>'}).join(' &middot; ')+' &middot; <a href="#" class="mi warn" onclick="archiveAsk(\''+d.name+'\');return false">Archive</a>';
+      var ask=ARCHIVING===d.name?'<tr><td colspan="2"><b>Archive '+esc(d.title)+'?</b> This withdraws any open requests and can\'t be undone. The contract will no longer be listed.<div class="row"><button class="go" onclick="archiveGo(\''+d.name+'\')">Archive</button><button class="alt" onclick="archiveCancel()">Cancel</button></div></td></tr>':'';
+      var sel=d.name===RUNID?' sel':'';
+      return '<tr class="top'+sel+'"><td>'+esc(d.title)+(d.signed?' <span class="chip ok">Signed copy</span>':'')+'<br><span class="tag">'+(d.customer?esc(d.customer)+' &middot; ':'')+d.when+'</span></td><td><span class="chip '+(DOT[d.status]||'')+'">'+LABEL[d.status]+'</span><br><span class="tag">'+esc(d.note)+'</span></td></tr><tr class="mrow'+sel+'"><td colspan="2">'+menu+'</td></tr>'+ask}).join('')+'</table></div>'}
+  return h+'</div>'}
+function contractsPage(){return (NOTICE?'<div class="busy">'+NOTICE+'</div>':'')+dealsCard()+(CTX==='demo'?demoPicker():uploadCard())}
+async function openDealPage(n,p){setDeal(n);NOTICE='';ARCHIVING=null;await load();userPicked=true;cur=p;draw()}
+function archiveAsk(r){ARCHIVING=r;draw()}
+function archiveCancel(){ARCHIVING=null;draw()}
+async function archiveGo(r){var x=await api('/api/archive',{run:r});if(x.error){alert(x.error);return}ARCHIVING=null;if(RUNID===r)setDeal(null);NOTICE='Archived. Its open requests were withdrawn, and it is no longer listed.';await load();draw()}
+function contractBar(label){
+  var d=(S.deals||[]).filter(function(x){return x.name===RUNID})[0],t=d?d.title:(S.upload?S.upload.filename:'');
+  var steps=PAGES.slice(1).map(function(p,i){return (i+1)===cur?'<b>'+p+'</b>':'<a href="#" class="mi" onclick="go('+(i+1)+');return false">'+p+'</a>'}).join(' &middot; ');
+  return '<div style="margin:0 0 12px"><div class="row" style="margin:0 0 4px"><button class="alt" onclick="go(0)">&larr; Contracts</button><span><b>'+esc(t)+'</b></span></div><div class="tag">'+steps+'</div></div>'}
+function noContract(){return '<div class="card"><h2>Choose a contract</h2><p class="sub">Pick a contract on the Contracts page first. Its steps open from there.</p><div class="row"><button class="go" onclick="go(0)">Contracts</button></div></div>'}
+var CHOSEN=null;
+function chosenText(){return CHOSEN?'Chosen: '+esc(CHOSEN.name)+' ('+Math.max(1,Math.round(CHOSEN.size/1024))+' KB)':'No file chosen yet. Choose one, or drag it onto this box.'}
+function showChosen(){var n=document.getElementById('uname');if(n)n.innerHTML=chosenText()}
+document.addEventListener('change',function(e){if(e.target&&e.target.id==='ufile'){CHOSEN=e.target.files[0]||CHOSEN;showChosen()}});
+['dragover','drop'].forEach(function(t){window.addEventListener(t,function(e){e.preventDefault()})}); // a missed drop must not open the file in the browser
+document.addEventListener('dragover',function(e){var z=e.target.closest&&e.target.closest('#udrop');if(z)z.classList.add('over')});
+document.addEventListener('dragleave',function(e){var z=document.getElementById('udrop');if(z)z.classList.remove('over')});
+document.addEventListener('drop',function(e){var z=e.target.closest&&e.target.closest('#udrop');if(!z)return;z.classList.remove('over');
+  var f=e.dataTransfer&&e.dataTransfer.files[0];if(!f)return;CHOSEN=f;try{var dt=new DataTransfer();dt.items.add(f);document.getElementById('ufile').files=dt.files}catch(x){}showChosen()});
+var KINDS={'docx-tracked':'Word file with tracked changes','docx-clean':'Word file with no tracked changes','pdf':'PDF','text':'Plain text'};
+function uploadCard(){
+  var h='<div class="card"><h2>Upload a contract</h2><p class="sub">The customer sent a redline, or their own paper. Upload it and the app compares it with ACME\'s standard before the AI starts. Word files with tracked changes work best.</p>';
+  h+='<div id="udrop" class="drop"><input type="file" id="ufile" accept=".docx,.pdf,.txt,.md"><div id="uname" class="tag">'+chosenText()+'</div></div>'+roundPicker()+'<h3>The deal</h3><p class="tag">These facts go to the approvers and to the audit record. In real use they come from the CRM. For a later round, leave them blank to keep the earlier ones.</p><div class="row"><input id="dcust" placeholder="Customer" style="flex:2;min-width:160px"><input id="dfees" placeholder="Annual fees, for example 250000" inputmode="decimal" style="flex:2;min-width:160px"><input id="dterm" placeholder="Term in months" inputmode="numeric" style="flex:1;min-width:110px"><select id="dtier"><option value="">Standard or strategic</option><option value="standard">Standard</option><option value="strategic">Strategic</option></select></div><h3>Other deal facts</h3><textarea id="uprofile" rows="8" placeholder="Customer, annual fees, term, strategic or standard, upside, competition, data types, precedent">'+esc(PROFILE_TEMPLATE)+'</textarea>';
+  h+='<div class="row"><button class="go" onclick="uploadContract()">Upload and find the changes</button><span class="tag">Takes a few minutes. Requests go to approvers automatically unless the app is set to wait for your click.</span></div>';
+  return h+'</div>'}
+function uploadedInfo(){
+  var u=S.upload;if(!(u&&S.case.id==='upload'))return '';
+  var h='<div class="card">';
+  {
+    h+='<h3>What was uploaded</h3><p>'+(u.signed?'<span class="chip ok">Signed copy</span> ':u.previous?'<span class="chip">Later round</span> ':'')+esc(u.filename)+': <span class="chip">'+esc(KINDS[u.kind]||u.kind)+'</span> '+u.differences+' difference'+(u.differences===1?'':'s')+' from the standard'+(u.kind==='docx-tracked'?', '+u.tracked_paragraphs+' paragraph'+(u.tracked_paragraphs===1?'':'s')+' with tracked changes':'')+'.</p>';
+    u.warnings.forEach(function(w){h+='<p class="tag">'+esc(w)+'</p>'});
+    if(u.previous){var sp=u.since_previous;h+='<p>'+(u.signed?(sp===0?'<span class="chip ok">Matches the last agreed draft</span> The signed copy has no differences from it.':'<span class="chip no">Does not match the last agreed draft</span> '+sp+' difference'+(sp===1?'':'s')+' from it. Do not file it until these are resolved.'):sp+' difference'+(sp===1?'':'s')+' since the previous round.')+'</p>';if(sp)h+='<details'+(u.signed?' open':'')+'><summary>Differences from the previous round</summary><pre class="msg">'+esc(u.since_previous_text)+'</pre></details>'}
+    if(u.untracked)h+='<div class="err">Untracked changes: '+u.untracked+' difference'+(u.untracked===1?'':'s')+' in the text that are not marked as tracked changes. Check these with the customer.\n'+esc(u.untracked_text)+'</div>'}
+  if(u&&S.case.id==='upload'&&S.signed_check)h+='<h3>Signed copy check</h3>'+md(S.signed_check);
+  return h+'</div>'}
+function roundPicker(){
+  if(!S.upload_runs.length)return '';
+  return '<h3>Which round is this?</h3><p><select id="uprev"><option value="">First upload, compare with the standard</option>'+S.upload_runs.map(function(r){return '<option value="'+r.name+'">A later round of: '+esc(r.title)+' ('+r.name.slice(4)+')</option>'}).join('')+'</select></p><p><label><input type="checkbox" id="usigned"> This is the signed copy. Check it against the round chosen above.</label></p>'}
+var PROFILE_TEMPLATE='| Field | |\n|---|---|\n| Customer | |\n| Deal | Annual fees, term, total value, target signature date |\n| Strategic or standard | |\n| Upside | |\n| Competition | |\n| Data types | |\n| Precedent | |';
+async function uploadContract(){
+  var f=document.getElementById('ufile').files[0]||CHOSEN;if(!f){alert('Choose the contract file first.');return}
+  var buf=new Uint8Array(await f.arrayBuffer()),bin='';for(var i=0;i<buf.length;i+=32768)bin+=String.fromCharCode.apply(null,buf.subarray(i,i+32768));
+  pick=null;
+  var pv=document.getElementById('uprev');
+  var r=await api('/api/upload',{filename:f.name,data:btoa(bin),profile:document.getElementById('uprofile').value,deal:{customer:document.getElementById('dcust').value,annual_fees:document.getElementById('dfees').value,term_months:document.getElementById('dterm').value,tier:document.getElementById('dtier').value},previous:pv?pv.value:'',signed:!!(document.getElementById('usigned')&&document.getElementById('usigned').checked)});
+  if(r.error){alert(r.error);return}
+  CHOSEN=null;NOTICE='Uploaded '+esc(f.name)+'. '+(r.started?'The app is finding the changes now. Upload another contract, or open this one from the list above when it is ready.':'The file was read, but the analysis did not start. Open it from the list above.');
+  userPicked=true;cur=0;await load();draw()}
+function pickCase(v){pick=v;draw()}
+async function startRun(){var id=document.getElementById('casesel').value;pick=null;NOTICE='';var r=await api('/api/start',{run:'',case:id,profile:document.getElementById('profile').value});if(r.error){alert(r.error);return}setDeal(r.run);NOTICE='Started '+esc(S.cases[id].title)+'. It is being analysed now; open its steps from the list above.';await load();userPicked=true;cur=0;draw()}
+async function sendAll(src){await act('/api/send',{source:src},function(){userPicked=true;cur=2;draw()})}
+var APPEALING=null,APPEAL_TEXT='';
+document.addEventListener('input',function(e){if(e.target&&e.target.id==='appealtext')APPEAL_TEXT=e.target.value}); // keep what is typed if the page refreshes
+function appealsPage(){
+  var A=S.appeals||[],NA=(S.record||[]).filter(function(r){return /^Not approvable/i.test(r.status)});
+  var h='<div class="card"><h2>Appeals</h2><p class="sub">Select a denied change to appeal it. The same approver decides again, once. Add new context only if something about this deal is special. After that, the decision stands.</p>';
+  if(!A.length)h+='<p>Nothing has been denied, so there is nothing to appeal.</p>';
+  else h+='<table><tr><th>Change</th><th>Approver</th><th>Their reason (exact words)</th><th></th></tr>'+A.map(function(x){
+    var act=x.state==='open'?(APPEALING===x.request?'':'<button class="alt" onclick="appealOpen(\''+x.request+'\')">Appeal</button>'):x.state==='pending'?'<span class="chip wa">Appeal pending</span>':'<span class="chip '+chipClass(x.outcome)+'">'+esc(x.outcome)+'</span><br><span class="tag">Appeal decided. The decision stands.</span>';
+    var form=x.state==='open'&&APPEALING===x.request?'<tr><td colspan="4"><b>Appeal: '+esc(x.change)+'</b><textarea id="appealtext" rows="3" placeholder="New context for '+esc(x.approver)+' (optional). Say what is different about this deal.">'+esc(APPEAL_TEXT)+'</textarea><div class="row"><button class="go" onclick="appealSend(\''+x.request+'\')">Send appeal</button><button class="alt" onclick="appealCancel()">Cancel</button><span class="tag">You can appeal this denial once.</span></div></td></tr>':'';
+    return '<tr><td>'+esc(x.change)+'</td><td>'+esc(x.approver)+'</td><td>'+esc(x.words)+'</td><td>'+act+'</td></tr>'+form}).join('')+'</table>';
+  if(NA.length)h+='<p class="tag">Not approvable under the matrix, so there is no approver to appeal to: '+NA.map(function(r){return esc(r.id+' '+r.change)}).join('; ')+'.</p>';
+  return h+'</div>'}
+function appealOpen(r){APPEALING=r;draw()}
+function appealCancel(){APPEALING=null;APPEAL_TEXT='';draw()}
+async function appealSend(r){var x=await api('/api/appeal',{request:r,context:APPEAL_TEXT});if(x.error){alert(x.error);return}APPEALING=null;APPEAL_TEXT='';await load();draw()}
+var OPEN=/^(Appeal pending|Awaiting reply|Missing co-approval|Referred to Deal Desk|Not sent|Authority unclear|Not in matrix)/i;
+function chipClass(st){return /condition/i.test(st)?'wa':/^(denied|not approvable)/i.test(st)?'no':/^(approved|no approval needed)/i.test(st)?'ok':'wa'}
+function tally(R){
+  if(!R.length)return '';
+  var decided=R.filter(function(r){return !OPEN.test(r.status)}).length,
+      ok=R.filter(function(r){return chipClass(r.status)==='ok'}).length,
+      cond=R.filter(function(r){return /condition/i.test(r.status)}).length,
+      no=R.filter(function(r){return chipClass(r.status)==='no'}).length,
+      parts=[ok?ok+' approved':'',cond?cond+' with conditions':'',no?no+' denied or not approvable':''].filter(Boolean);
+  return '<p><b>'+decided+' of '+R.length+' decided</b>'+(parts.length?': '+parts.join(', '):'')+'. '+(decided===R.length?'<span class="chip ok">All answered</span>':'<span class="chip wa">Waiting on '+(R.length-decided)+'</span>')+'</p>'}
+var FFILE=null;
+document.addEventListener('change',function(e){if(e.target&&e.target.id==='ffile'){FFILE=e.target.files[0]||FFILE;var n=document.getElementById('fname');if(n)n.textContent=FFILE?FFILE.name:'No file chosen yet.'}});
+function finalPage(){
+  var F=S.final_check;
+  var h='<div class="card"><h2>Final Check</h2><p class="sub">Before the contract goes for signature, upload its final version: the redline at its latest revision, with the approved changes accepted (add an "approved" comment if you like) and anything denied removed or explained. The app checks that it contains no change that was not approved. It is a pass or fail check, and if it fails it shows where.</p>';
+  h+='<div class="drop"><input type="file" id="ffile" accept=".docx,.pdf,.txt,.md"><div id="fname" class="tag">'+(FFILE?esc(FFILE.name):'No file chosen yet.')+'</div></div><div class="row"><button class="go" onclick="finalSend()">Check the final contract</button></div>';
+  if(F){
+    h+='<h3>Result for '+esc(F.filename)+'</h3>';
+    if(F.pass)h+='<p><span class="chip ok">PASS</span> Every change in the contract is covered by an approval ('+F.changes_in_final+' checked).</p>';
+    else h+='<p><span class="chip no">FAIL</span> '+F.failures.length+' change'+(F.failures.length===1?' is':'s are')+' not covered by an approval. Where it fails:</p><table><tr><th>Where</th><th>In the final contract</th><th>Approved wording</th><th>Why it fails</th></tr>'+F.failures.map(function(x){return '<tr><td>'+esc(x.where)+'</td><td>'+esc(x.contract)+'</td><td>'+esc(x.reference)+'</td><td>'+esc(x.reason)+'</td></tr>'}).join('')+'</table>';
+    if(F.notes.length)h+='<h3>To confirm</h3>'+F.notes.map(function(n){return '<p class="tag">'+esc(n)+'</p>'}).join('');
+    if(F.ok.length||F.removed.length)h+='<details><summary>What was checked and is fine</summary>'+F.ok.concat(F.removed).map(function(x){return '<p class="tag">'+esc(x.where)+': '+esc(x.what)+'</p>'}).join('')+'</details>';
+    h+='<p class="tag">Checked '+esc(F.at)+'. A new upload replaces this result.</p>'}
+  return h+'</div>'}
+async function finalSend(){
+  var f=document.getElementById('ffile').files[0]||FFILE;if(!f){alert('Choose the final contract file first.');return}
+  var buf=new Uint8Array(await f.arrayBuffer()),bin='';for(var i=0;i<buf.length;i+=32768)bin+=String.fromCharCode.apply(null,buf.subarray(i,i+32768));
+  var x=await api('/api/final',{filename:f.name,data:btoa(bin)});if(x.error){alert(x.error);return}
+  FFILE=null;await load();draw()}
+async function refreshDeals(){S=await api('/api/state');var el=document.getElementById('deals');if(el)el.outerHTML=dealsCard()}
+setInterval(function(){if(!S)return;
+  var busy=S.job.status==='running'||(S.deals||[]).some(function(d){return d.status==='analyzing'})||(S.mode==='demo'&&S.demo.ai_approvers&&S.portal.some(function(q){return q.status==='open'}));
+  if(busy)(cur===0?refreshDeals():load())},3000);
+load();
+</script>
+</body>
+</html>

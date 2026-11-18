@@ -1,0 +1,18 @@
+# Caddy gets and renews the HTTPS certificate on its own. Replace the domain.
+# The app listens only on 127.0.0.1:8765, so this proxy is the only way in.
+sellersassociate.com {
+	encode gzip
+	request_body {
+		max_size 25MB
+	}
+	reverse_proxy 127.0.0.1:8765 {
+		# Only needed for [auth] provider = "proxy-header". Strip anything the client sent,
+		# so only your single sign-on proxy can set this header.
+		# header_up -X-Forwarded-Email
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+	}
+}

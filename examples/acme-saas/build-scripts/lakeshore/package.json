@@ -1,0 +1,11 @@
+{
+  "name": "lakeshore-agreement-build",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Generates the fictional Lakeshore Health SaaS Agreement used in the ACME SaaS example",
+  "author": "William Scott Downs",
+  "license": "MIT",
+  "dependencies": {
+    "docx": "^9.15.3"
+  }
+}
