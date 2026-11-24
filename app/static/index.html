@@ -23,6 +23,7 @@ p.sub{color:var(--mute);margin:0 0 12px;font-size:14px}
 button.go{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--acc);background:var(--acc);color:var(--onacc);cursor:pointer}
 button.go:disabled{opacity:.5;cursor:default}
 button.alt{font:inherit;padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.pf{display:grid;grid-template-columns:170px 1fr;gap:8px 14px;align-items:start;margin:6px 0 14px}.pf label{font-size:13px;font-weight:600;color:var(--mute);padding-top:9px}.pf textarea{font:14px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:38px;resize:vertical;overflow:hidden}@media(max-width:560px){.pf{grid-template-columns:1fr}.pf label{padding-top:0}}
 textarea{width:100%;font:13px/1.5 ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--bg);color:var(--ink)}
 table{border-collapse:collapse;width:100%;font-size:13px;margin:8px 0}
 th,td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
@@ -59,6 +60,12 @@ a{color:var(--acc)}
 <script>
 var S=null,cur=null,userPicked=false,pick=null;
 var PAGES=['','Summary','Requests/Status','Appeals','Final Check'];
+function qa(s){return esc(s).replace(/"/g,'&quot;')}
+function pfParse(md){var pre=[],rows=[],seen=false;String(md).split('\n').forEach(function(l){var t=l.trim();if(t.charAt(0)==='|'){seen=true;if(/^[-:\s|]+$/.test(t))return;rows.push(t.replace(/^\|/,'').replace(/\|$/,'').split('|').map(function(x){return x.trim()}))}else if(!seen)pre.push(l)});return{pre:pre.join('\n').trim(),rows:rows.slice(1)}}
+function pfEditor(id,md,blank){var p=pfParse(md);if(!p.rows.length)return '<textarea id="'+id+'" rows="14">'+esc(md)+'</textarea>';
+  return '<div class="pf" id="'+id+'" data-pre="'+qa(p.pre)+'">'+p.rows.map(function(r){var v=(r[1]||'').replace(/\*\*/g,'');return '<label>'+esc(r[0])+'</label><textarea rows="'+(blank?1:Math.max(1,Math.ceil(v.length/80)))+'" data-f="'+qa(r[0])+'"'+(blank&&v?' placeholder="'+qa(v)+'"':'')+' oninput="this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\'">'+(blank?'':esc(v))+'</textarea>'}).join('')+'</div>'}
+function pfMd(id){var e=document.getElementById(id);if(!e)return '';if(e.tagName==='TEXTAREA')return e.value;var out=(e.dataset.pre?e.dataset.pre+'\n\n':'')+'| Field | Detail |\n|---|---|\n';e.querySelectorAll('textarea').forEach(function(t){out+='| '+t.dataset.f+' | '+t.value.replace(/\|/g,'/').replace(/\s*\n\s*/g,' ')+' |\n'});return out}
+function pfSize(){document.querySelectorAll('.pf textarea').forEach(function(t){t.style.height='auto';t.style.height=Math.max(38,t.scrollHeight)+'px'})}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function inline(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<b style="font-weight:500">$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>')}
 function md(t){
@@ -112,7 +119,7 @@ function demoPicker(){
     h+='<div class="card"><h2>Start a staged example</h2><p class="sub">A prepared case, so you can watch the whole workflow without a real contract. It is a separate deal: it never touches your own uploads. Choose the case. '+(c.kind==='paper'?'The customer sent its own agreement, with no redline.':'The customer sent a redline of ACME\'s agreement.')+' In real life the CRM would fill in the deal profile. Edit it if you like.</p>';
     h+='<p><select id="casesel" onchange="pickCase(this.value)">'+Object.keys(S.cases).map(function(k){return '<option value="'+k+'"'+(k===id?' selected':'')+'>'+esc(S.cases[k].title)+'</option>'}).join('')+'</select></p>';
     h+='<p>'+c.links.map(function(l){return '<a href="'+l.href+'" target="_blank">'+esc(l.label)+'</a>'}).join(' &nbsp;|&nbsp; ')+'</p>';
-    h+='<h3>Deal profile</h3><textarea id="profile" rows="14">'+esc(prof)+'</textarea>';
+    h+='<h3>Deal profile</h3>'+pfEditor('profile',prof,false);
     h+='<div class="row"><button class="go" id="startBtn" onclick="startRun()">Find the changes</button><span class="tag">Takes a few minutes. Nothing is sent to anyone.</span></div></div>';
   
   return h}
@@ -153,7 +160,7 @@ function draw(){
   nav();document.getElementById('hdr').innerHTML='<a href="/portal">Approver portal</a> &nbsp;·&nbsp; <a href="'+(S.provider==='none'?'/login">Act as someone else':'/logout">Sign out')+'</a>';var j=S.job,b=document.getElementById('busy');
   var demo=S.mode==='demo',demoBanner=demo?'<div class="busy">Demo mode: simulated approvers, nothing is emailed. Use fictional data only. Records here are not proof of authority.</div>':'';var ev=S.env,banner=demoBanner+(ev.problem?'<div class="err">'+esc(ev.problem)+'</div>':ev.stand_in&&!demo?'<div class="busy">Stand-in data only. Model: '+esc(ev.backend)+(ev.model?' / '+esc(ev.model):'')+'. Do not enter a real customer\'s contract.</div>':'');
   b.innerHTML=banner+(cur<1?'':j.status==='running'?'<div class="busy">Working: '+esc(j.message)+'. This takes a few minutes.</div>':j.status==='error'?'<div class="err">The step failed.\n'+esc(j.message)+'</div>':'');
-  document.getElementById('screen').innerHTML=screens();
+  document.getElementById('screen').innerHTML=screens();pfSize();
   /* only a contract's own screens wait for its analysis; the Contracts page never does */
   var d=document.querySelectorAll('button.go');d.forEach(function(x){x.disabled=cur>=1&&j.status==='running'})}
 async function load(){S=await api('/api/state');if(RUNID&&!S.run)setDeal(null);if(cur===null)cur=-1;draw()}
@@ -193,7 +200,7 @@ document.addEventListener('drop',function(e){var z=e.target.closest&&e.target.cl
 var KINDS={'docx-tracked':'Word file with tracked changes','docx-clean':'Word file with no tracked changes','pdf':'PDF','text':'Plain text'};
 function uploadCard(){
   var h='<div class="card"><h2>Upload a contract</h2><p class="sub">The customer sent a redline, or their own paper. Upload it and the app compares it with ACME\'s standard before the AI starts. Word files with tracked changes work best.</p>';
-  h+='<div id="udrop" class="drop"><input type="file" id="ufile" accept=".docx,.pdf,.txt,.md"><div id="uname" class="tag">'+chosenText()+'</div></div>'+roundPicker()+'<h3>The deal</h3><p class="tag">These facts go to the approvers and to the audit record. In real use they come from the CRM. For a later round, leave them blank to keep the earlier ones.</p><div class="row"><input id="dcust" placeholder="Customer" style="flex:2;min-width:160px"><input id="dfees" placeholder="Annual fees, for example 250000" inputmode="decimal" style="flex:2;min-width:160px"><input id="dterm" placeholder="Term in months" inputmode="numeric" style="flex:1;min-width:110px"><select id="dtier"><option value="">Standard or strategic</option><option value="standard">Standard</option><option value="strategic">Strategic</option></select></div><h3>Other deal facts</h3><textarea id="uprofile" rows="8" placeholder="Customer, annual fees, term, strategic or standard, upside, competition, data types, precedent">'+esc(PROFILE_TEMPLATE)+'</textarea>';
+  h+='<div id="udrop" class="drop"><input type="file" id="ufile" accept=".docx,.pdf,.txt,.md"><div id="uname" class="tag">'+chosenText()+'</div></div>'+roundPicker()+'<h3>The deal</h3><p class="tag">These facts go to the approvers and to the audit record. In real use they come from the CRM. For a later round, leave them blank to keep the earlier ones.</p><div class="row"><input id="dcust" placeholder="Customer" style="flex:2;min-width:160px"><input id="dfees" placeholder="Annual fees, for example 250000" inputmode="decimal" style="flex:2;min-width:160px"><input id="dterm" placeholder="Term in months" inputmode="numeric" style="flex:1;min-width:110px"><select id="dtier"><option value="">Standard or strategic</option><option value="standard">Standard</option><option value="strategic">Strategic</option></select></div><h3>Other deal facts</h3>'+pfEditor('uprofile',PROFILE_TEMPLATE,true);
   h+='<div class="row"><button class="go" onclick="uploadContract()">Upload and find the changes</button><span class="tag">Takes a few minutes. Requests go to approvers automatically unless the app is set to wait for your click.</span></div>';
   return h+'</div>'}
 function uploadedInfo(){
@@ -215,12 +222,12 @@ async function uploadContract(){
   var buf=new Uint8Array(await f.arrayBuffer()),bin='';for(var i=0;i<buf.length;i+=32768)bin+=String.fromCharCode.apply(null,buf.subarray(i,i+32768));
   pick=null;
   var pv=document.getElementById('uprev');
-  var r=await api('/api/upload',{filename:f.name,data:btoa(bin),profile:document.getElementById('uprofile').value,deal:{customer:document.getElementById('dcust').value,annual_fees:document.getElementById('dfees').value,term_months:document.getElementById('dterm').value,tier:document.getElementById('dtier').value},previous:pv?pv.value:'',signed:!!(document.getElementById('usigned')&&document.getElementById('usigned').checked)});
+  var r=await api('/api/upload',{filename:f.name,data:btoa(bin),profile:pfMd('uprofile'),deal:{customer:document.getElementById('dcust').value,annual_fees:document.getElementById('dfees').value,term_months:document.getElementById('dterm').value,tier:document.getElementById('dtier').value},previous:pv?pv.value:'',signed:!!(document.getElementById('usigned')&&document.getElementById('usigned').checked)});
   if(r.error){alert(r.error);return}
   CHOSEN=null;NOTICE='Uploaded '+esc(f.name)+'. '+(r.started?'The app is finding the changes now. Upload another contract, or open this one from the list above when it is ready.':'The file was read, but the analysis did not start. Open it from the list above.');
   userPicked=true;cur=0;await load();draw()}
 function pickCase(v){pick=v;draw()}
-async function startRun(){var id=document.getElementById('casesel').value;pick=null;NOTICE='';var r=await api('/api/start',{run:'',case:id,profile:document.getElementById('profile').value});if(r.error){alert(r.error);return}setDeal(r.run);NOTICE='Started '+esc(S.cases[id].title)+'. It is being analysed now; open its steps from the list above.';await load();userPicked=true;cur=0;draw()}
+async function startRun(){var id=document.getElementById('casesel').value;pick=null;NOTICE='';var r=await api('/api/start',{run:'',case:id,profile:pfMd('profile')});if(r.error){alert(r.error);return}setDeal(r.run);NOTICE='Started '+esc(S.cases[id].title)+'. It is being analysed now; open its steps from the list above.';await load();userPicked=true;cur=0;draw()}
 async function sendAll(src){await act('/api/send',{source:src},function(){userPicked=true;cur=2;draw()})}
 var APPEALING=null,APPEAL_TEXT='';
 document.addEventListener('input',function(e){if(e.target&&e.target.id==='appealtext')APPEAL_TEXT=e.target.value}); // keep what is typed if the page refreshes
