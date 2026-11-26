@@ -4,14 +4,14 @@ How a contract deviation moves from request to proven approval, what status each
 
 ## The path
 
-1. **Requester** (for example, the account executive) hands the contract to the playbook: a redline, or the counterparty's paper as received.
-2. **Identify (Stage 1).** The AI lists every deviation from the standard positions in `doa_matrix.csv`, with clause references and the requested wording.
-3. **Locate (Stage 2).** The AI finds the matrix row for each deviation and routes it to the **lowest level whose authority covers the request**. A higher level may also approve, but the request does not skip levels.
-4. **Draft (Stage 3).** The AI drafts one escalation request per approver: the change, the standard position, the deal facts and exposure, a modest recommendation (hold the standard unless the profile gives a reason), and the decision needed. The AI never proposes a concession. After the requester confirms the batch once, the playbook sends each request on the requester's behalf and copies the **approvals mailbox**.
-5. **Approvers reply** to the approvals mailbox. The playbook matches each reply to the request it answers and each sender to a title. See [seller-experience.md](seller-experience.md).
-6. **Document (Stage 4).** The AI records each decision with a status (below), quoting the approver word for word.
-7. The **record custodian** stores the approval record, the evidence and the contract together.
-8. The **pre-signature check** compares the final contract with the approvals before anyone signs.
+1. **Requester** (for example, the account executive) uploads the contract.
+2. **Identify.** Code lists every difference from the standard agreement.
+3. **Locate.** Code finds the matrix row; one AI reading names the **lowest level whose authority covers the request**, and code checks it. A higher level may also approve, but the request does not skip levels.
+4. **Request.** Code writes one request per approver: the change, the standard position, the deal facts and exposure, a modest recommendation and the decision needed. The app never proposes a concession.
+5. **Approvers decide** in the portal. Notifications copy the seller and the **approvals mailbox**; email replies are not read.
+6. **Record.** Code builds the approval record from the decisions, quoting each approver word for word.
+7. The **record custodian** files the record, the evidence and the contract together.
+8. The **final check** compares the final contract with the approvals before anyone signs, and the **pre-signature check** role reviews it.
 
 Every deviation must reach **Approved** or **Conditional**, or be removed from the contract, before signature.
 
@@ -19,17 +19,29 @@ Every deviation must reach **Approved** or **Conditional**, or be removed from t
 
 | Status | Meaning | Next step |
 |---|---|---|
-| Approved | The approver named by the matrix approved the full request | None |
-| Conditional | Approved, with conditions or limits | Record the conditions word for word. The requester makes sure the contract reflects them |
-| Partial | The approval covers only part of the request | Record the approved part as Approved. Send the rest back to the same approver |
-| Unclear | The reply does not clearly approve or deny the request | Send it back to the same approver with a specific yes/no question. Silence is not approval |
-| Missing co-approval | A joint approval (`+`) is incomplete | Chase each approver who has not replied. Nothing is approved until all have |
-| Wrong authority | The reply came from someone who does not hold the title the matrix names | Not valid. Re-send the request to the correct title |
-| Authority unclear | The matrix does not clearly say who may approve this request | The matrix owner rules on who has authority. Then escalate to that approver |
-| Not in matrix | No matrix row covers the deviation | The matrix owner decides. Do not apply the nearest row by analogy |
-| Not approvable | The position is in the Not approvable column | No one may approve it. The requester negotiates it out, or the matrix owner amends the matrix |
-| Approved (pre-approved) | The matrix lets a named role accept the change without escalation, and the request is within the cell's words | No message is sent. Name the role in the record. If the request does anything the cell does not name, it is Authority unclear instead |
-| Denied | The approver said no | The contract stays at the standard position. The seller may appeal once to the same approver, with new context. After that the decision stands. A different position goes in a new round of the contract |
+| Not sent | The request has not gone out | Fix the reason shown, or confirm the send |
+| Awaiting reply | No decision yet | Reminders and escalation run on schedule. Silence is not approval |
+| Approved | Every approver the matrix names approved | None |
+| Conditional | Approved, with conditions or limits | Conditions are recorded word for word. The requester makes sure the contract reflects them |
+| Missing co-approval | A joint approval (`+`) is incomplete | Nothing is approved until all have |
+| Approved (pre-approved) | The matrix lets a named role accept the change without escalation | No request is sent |
+| Not approvable | The position is in the Not approvable column | No one may approve it. Negotiate it out, or the matrix owner amends the matrix |
+| Referred to Deal Desk | The matrix does not settle the change | The Deal Desk finds out what is needed and records the outcome and authority |
+| Approved, Approved with conditions, Denied or No approval needed (Deal Desk) | The Deal Desk's recorded outcome | The authority it cites is its own statement, not verified in the system |
+| Denied | An approver said no | The contract stays at the standard position. The seller may appeal once |
+| Appeal pending | The appeal is with the same approver | Wait for the second decision |
+
+### Extra statuses in the manual process
+
+The portal takes only a clear choice, so a decision cannot be ambiguous. When the process is run by hand with the prompts in `playbook/`, decisions arrive as free text, and these statuses also apply.
+
+| Status | Meaning | Next step |
+|---|---|---|
+| Partial | The approval covers only part of the request | Record the approved part. Send the rest back to the same approver |
+| Unclear | The reply does not clearly approve or deny | Ask the same approver a specific yes or no question |
+| Wrong authority | The reply came from someone who does not hold the named title | Not valid. Re-send to the correct title |
+| Authority unclear | The matrix does not clearly say who may approve | The matrix owner rules on it |
+| Not in matrix | No matrix row covers the change | The matrix owner decides. Do not apply the nearest row by analogy |
 
 ## Approval is permission, not an obligation
 
@@ -45,11 +57,11 @@ The organization's interest is to keep terms as close to standard as possible. N
 
 A seller may appeal a denial once. The appeal goes back to the same approver, quoting the denial in the approver's words and any new context the seller adds, and the approver decides again. There is no appeal to anyone above the approver, and no second appeal. A "not approvable" change has no approver, so it cannot be appealed.
 
-A denial also does not stop the seller from asking for a different position, in a new round of the contract. The seller must ask; the app never suggests it. The new request is routed to the lowest level that covers it, even if that is lower than the approver who denied, and it quotes the denial so the new approver decides with the facts. The matrix does not say whether a lower-level approval after a higher-level denial is allowed. The record flags this, and the matrix owner may add a rule.
+A denial also does not stop the seller from proposing a different position, in a new round of the contract. The app never suggests one. The new position is routed to the lowest level that covers it, even if that is lower than the approver who denied. The matrix does not say whether a lower-level approval after a higher-level denial is allowed; the matrix owner may add a rule.
 
 ## Two kinds of ambiguity
 
-Ambiguity is treated differently depending on whose question it is.
+Ambiguity is treated differently depending on whose question it is. The app refers rule ambiguity to the title in the `Terms not in the matrix` setting (the Deal Desk for ACME), or to the matrix owner if the setting is absent. The manual playbook sends it to the matrix owner, and the examples below come from the manual version.
 
 | | Rule ambiguity | Decision ambiguity |
 |---|---|---|

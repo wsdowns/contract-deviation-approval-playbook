@@ -8,6 +8,7 @@ signed-in person, not an address typed in a message.
 import csv
 import html
 import json
+import os
 import re
 import secrets
 import threading
@@ -80,8 +81,16 @@ def load(run):
     return json.loads(f.read_text(encoding="utf-8")) if f.exists() else []
 
 
+def write(path, text):
+    """Write a whole file or nothing, so a page that reads it at the same moment never sees half of it."""
+    path = Path(path)
+    tmp = path.with_name(f"{path.name}.{os.getpid()}-{threading.get_ident()}.tmp")
+    tmp.write_text(text, encoding="utf-8")
+    os.replace(tmp, path)
+
+
 def _save(run, reqs):
-    _file(run).write_text(json.dumps(reqs, indent=1), encoding="utf-8")
+    write(_file(run), json.dumps(reqs, indent=1))
 
 
 def check_recipients(reqs, matrix):

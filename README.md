@@ -4,25 +4,34 @@
 
 An open, reproducible framework for using AI to manage **contract deviations under a delegation of authority (DoA)**. It works with any contract type and any organization's approval matrix. A complete worked example for SaaS selling is included.
 
-When a counterparty changes a contract, each changed term needs approval from the person the organization's DoA names for that term. The playbook has an AI partner do four things, with a human in control. The seller hands over a contract and confirms one batch; the playbook sends the requests, tracks the replies and speaks up only when a human decision is needed (see [docs/seller-experience.md](docs/seller-experience.md)):
+When a counterparty changes a contract, each changed term needs approval from the person the organization's DoA names for that term. The playbook does four things, with people making every approval decision. The seller hands over a contract, and the app finds the changes, sends the requests, chases the replies and records the answers (see [docs/seller-experience.md](docs/seller-experience.md)):
 
-1. **Identify** each changed term against the organization's standard position.
-2. **Locate** the DoA rule (level and approver) for each change.
-3. **Draft** the escalation request for each approver.
-4. **Document** the actual decisions: who approved what, with the approver's exact conditions and limits.
+1. **Identify** each changed term against the organization's standard position. Code compares the two documents.
+2. **Locate** the DoA rule for each change. Code finds the matrix row, one AI reading per contract names the level, and code checks that reading and takes the approvers from the matrix.
+3. **Request** a decision from each approver, from a fixed template.
+4. **Document** the actual decisions: who approved what, with the approver's exact words and conditions.
 
-The output is a consolidated approval record: **proof of authority for the changes, not proof of the changes.**
-
-Standing rule: when authority is unclear, information conflicts, or an approval is incomplete, the AI **flags it** instead of assuming.
+Standing rule: when the matrix does not settle who has authority, or an approval is incomplete, the app **flags it** instead of assuming.
 
 **Start here:** [docs/framework.md](docs/framework.md) explains the contract delegation of authority framework, and [docs/setup-guide.md](docs/setup-guide.md) walks through setup step by step.
 
-> **Status:** the framework, prompts, tooling, seller app and three worked cases are complete and checked against answer keys. Real email, a unique request ID and an automated qualification check are not built yet; see the limits in [docs/framework.md](docs/framework.md).
+> **Status:** version 1 works. The seller app, approver portal, reminders and escalation, appeals, final check, approvals ledger and a demo mode with AI-played approvers are built and covered by automated tests. It works on the organization's standard agreement with the customer's changes. See [what is built and what is not](#what-is-built).
+
+## See it
+
+The app runs privately at [sellersassociate.com](https://sellersassociate.com) with fictional data; it needs a login. To run it yourself:
+
+```bash
+pip install -r requirements.txt
+python app/server.py
+```
+
+Then open http://localhost:8765. With no configuration it runs the ACME example in demo mode, using the `claude` command as the model. Other model options are in [config.example.toml](config.example.toml); the full steps are in [docs/setup-guide.md](docs/setup-guide.md).
 
 ## How it matures
 
-1. **Manual.** People decide every deviation. The AI finds, routes, drafts and records. This works today.
-2. **Informed.** An approvals ledger records every decision, so the matrix owner can audit approvers and terms. An approver who always approves, or never does, raises a fair question about the matrix. Designed, not built.
+1. **Manual.** People decide every deviation. Code and AI find, route, request and record. Built.
+2. **Informed.** An approvals ledger records every decision, so the matrix owner can audit approvers and terms. An approver who always approves, or never does, raises a fair question about the matrix. The ledger and its audit page are built; they have not yet been used on real approval history.
 3. **Rules.** The owner writes deterministic rules: this position is approved under these conditions, with no person deciding each time. Code checks the rule, never the AI, and a named person authorizes it. Designed, not built.
 4. **Monitored.** Rules expire, are sampled for human review, and can be switched off.
 
@@ -60,12 +69,14 @@ python tools/doa_matrix.py build path/to/your-matrix your_matrix.xlsx --org "You
 
 | Path | Contents |
 |---|---|
-| `tools/` | `doa_matrix.py`: validates and builds any DoA matrix |
+| `app/` | The seller app, approver portal and audit page. Python standard library only; see [app/README.md](app/README.md) |
+| `tools/` | `doa_matrix.py` validates and builds any DoA matrix; also user setup, reminders and the example case builders |
 | `docs/` | Matrix format, the seller's experience, the deal profile, escalation path, statuses and ambiguity rules |
-| `playbook/` | Standing instructions and the four stage prompts (contract-type neutral) |
+| `playbook/` | The manual version of the process as prompts for any AI chat, plus the demo approver prompt |
 | `examples/acme-saas/` | Worked example: a fictional SaaS vendor's contracts, DoA matrix and three test cases |
-| `runs/` | AI output for each run, graded against the success criteria |
-| `tests/` | Tests for the tooling |
+| `runs/` | Saved AI output from early manual runs of Case 1 |
+| `tests/` | Automated tests for the app and tooling (no AI model needed) |
+| `deploy/` | Example HTTPS proxy and service files |
 
 ## Worked example: ACME SaaS
 
@@ -91,22 +102,26 @@ Each case is designed backward from its answer key: a short list of deviations, 
 6. **Flags instead of assumes:** unclear authority, conflicting information, and incomplete approvals are flagged, not resolved by guesswork.
 7. **Reproducible:** everything is published here under open licenses, so anyone can rerun each case and check the results.
 
-## Scope and assumptions
+## What is built
 
-- **Deal context comes from the CRM.** In a real deployment, the [deal profile](docs/deal-profile.md) is pulled from the CRM and other systems. For this project it is a file in each case folder, so the tests need no system access.
-- **Email is simulated in tests.** The playbook is designed to send requests and match replies automatically; tests use a simulated mailbox so every run is reproducible.
+| Built | Not built yet |
+|---|---|
+| Word upload with tracked changes read directly; untracked edits found; later rounds and a signed-copy check | Contracts on a customer's own paper (refused with a plain message) |
+| Code placement of each change on the matrix, one checked AI reading, approvers taken from the matrix | A code check that the level named is the lowest that covers the change |
+| Approver portal: approve, approve with conditions, deny, delegate, ask a question | Single sign-on beyond a proxy header (OIDC) |
+| Deal Desk referral for terms the matrix does not settle | A way for the seller to answer an approver's question inside the app |
+| Reminders, escalation, one appeal per denial, final check, archive | Retrying a failed notification email |
+| Append-only approvals ledger, audit page, CSV export | Deterministic rules that approve under stated conditions (specified) |
+| Demo mode with AI-played approvers; live mode with email notification | A spending limit on model use; CRM connection |
+
+More detail, in build order, is in [NEXT-PHASE.md](NEXT-PHASE.md).
+
+## Scope and limits
+
+- **Deal context is typed in.** In a real deployment the [deal profile](docs/deal-profile.md) comes from the CRM; see [docs/crm-integration.md](docs/crm-integration.md).
+- **Demo approvals are simulated.** Every demo record says so and is not proof of authority.
+- **Not yet proven in real use.** The worked cases are fictional and few, live email has not been run with real approvers, and no independent person has yet done a hand-off test.
 - **The matrix is an example.** Every threshold in the ACME matrix is a placeholder. Adopters set their own.
-
-## Roadmap
-
-- [x] DoA matrix format, validator and workbook builder, with tests
-- [x] SaaS example: seller paper (ACME, adapted from Common Paper) and customer paper (Lakeshore Health, original)
-- [x] SaaS example: DoA matrix, roles and people
-- [ ] Case design and answer keys, frozen before any playbook run
-- [x] Playbook prompts for the four stages (Case 1 run end to end; Cases 2 and 3 first round only)
-- [x] Seller app, a local web app with a simulated mailbox (all three cases; see [app/](app/README.md))
-- [ ] Runs and grading
-- [ ] Hand-off test by an independent tester
 
 ## About the author
 

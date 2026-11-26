@@ -1,6 +1,6 @@
 # How the app decides
 
-Code does everything it can. The AI is used once per contract, for the one step that needs reading comprehension, and its answer is checked by code before anything happens.
+Code does everything it can. Analyzing a contract uses the AI once, for the one step that needs reading comprehension, and its answer is checked by code before anything happens. Two other uses are listed at the end of the table.
 
 | Step | Who does it | How |
 |---|---|---|
@@ -17,6 +17,8 @@ Code does everything it can. The AI is used once per contract, for the one step 
 | Reminders, escalation, the ledger | **Code** | See [audit-and-ledger.md](audit-and-ledger.md). |
 | Final check | **Code** | The seller uploads the contract at its latest revision. Code finds every change it still has against the standard and compares each one with the approvals. It passes only if every change is covered: approved, in the same words. A denied change still in the contract, a change still waiting, changed wording, or a change nobody submitted all fail, and the result shows where. Conditions are listed as a note, because the app cannot check they are met. |
 | Appeals | **Code** | A denial can be appealed once, to the same approver, with the seller's new context. The record shows both decisions. |
+| Signed-copy check (optional) | **Code, then the AI** | When the seller uploads a signed copy against an earlier round, code lists the differences from that round and the AI writes a check of each against the approvals. It approves nothing. |
+| Playing approvers (demo mode only) | **The AI** | Stands in for the people, so the process can be shown. Every record says SIMULATED. |
 
 ## What this does not do
 

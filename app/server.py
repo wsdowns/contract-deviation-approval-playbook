@@ -1,8 +1,8 @@
 """Seller app for the Contract Deviation Approval Playbook.
 
-A small local web app. It runs the playbook prompts through the `claude` command
-(Claude Code), keeps a simulated approvals mailbox on disk, and shows the seller
-one screen per step. Standard library only.
+A small web app: the seller's screens, the approver portal and the audit page. It finds and routes
+changes in code, asks the configured model for one reading per contract, and keeps each deal as a
+folder under runs/. Standard library only.
 
     python app/server.py            # then open http://localhost:8765
     DOA_STUB=1 python app/server.py # canned model output, for testing the app itself
@@ -350,7 +350,7 @@ def run_dir():
 
 
 def save(name, text):
-    (run_dir() / name).write_text(text, encoding="utf-8")
+    portal.write(run_dir() / name, text)
 
 
 def load(name):
@@ -503,8 +503,8 @@ def appeal(rid, context):
 def snapshot(run):
     """The approval record as it stands, saved and added to the ledger. Called once every request in a deal has an answer."""
     md, rows = recordmod.build(run, MATRIX)
-    (run / "record.json").write_text(json.dumps(rows, indent=1), encoding="utf-8")
-    (run / "stage4.md").write_text(md, encoding="utf-8")
+    portal.write(run / "record.json", json.dumps(rows, indent=1))
+    portal.write(run / "stage4.md", md)
     ledger.add_record(CFG, run, "stage4", md)
 
 
@@ -665,7 +665,7 @@ def archive_deal(by):
     if run is None:
         raise ValueError("Choose a contract first.")
     n = portal.withdraw(run, CFG)
-    (run / "archived.json").write_text(json.dumps({"at": portal.now(), "by": by, "withdrawn": n}), encoding="utf-8")
+    portal.write(run / "archived.json", json.dumps({"at": portal.now(), "by": by, "withdrawn": n}))
     ledger.add_deal_event(CFG, run, "archived", by, f"{n} open request(s) withdrawn")
     return n
 

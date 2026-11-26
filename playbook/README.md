@@ -34,4 +34,4 @@ Replace four inputs: the standard agreement, the matrix files, the deal profile,
 
 They do not approve anything, decide who has authority when the matrix is unclear, or send anything themselves. Approving, and deciding who has authority, are human decisions.
 
-Note: these prompts are the manual version of the process, for use in any chat AI. The app (`app/`) does most of these steps in code and asks the AI one question per contract; see `docs/how-it-decides.md`. The app's own prompts are in `app/prompts/`.
+Note: these prompts are the manual version of the process, for use in any chat AI. The app (`app/`) does most of these steps in code and asks the AI one question per contract; see `docs/how-it-decides.md`. The app's own prompts are in `app/prompts/`. The app still uses `00-standing-instructions.md` and `04-record-decisions.md` for its signed-copy check, and `demo/approver.md` to play approvers in demo mode.

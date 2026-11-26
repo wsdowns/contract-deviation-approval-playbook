@@ -16,12 +16,12 @@ The record is proof of authority for the changes. It is not proof of the changes
 
 ## Principles
 
-1. **Automate the plumbing, never the authority.** The AI finds, routes, drafts and records. People approve. The AI never approves a change, never decides who has authority, and never sends on its own.
-2. **Authority comes from one source.** The DoA matrix is the only statement of who may approve what. If the matrix does not cover a change, the AI says so and routes it to the matrix owner. It does not guess.
+1. **Automate the plumbing, never the authority.** Code finds, routes, sends and records. The AI reads wording and names the level that covers it, and code checks that reading. People approve. The AI never approves a real change and never names an approver.
+2. **Authority comes from one source.** The DoA matrix is the only statement of who may approve what. If the matrix does not settle a change, the app says so and refers it to the title the organization names for that (the matrix owner if none is named). It does not guess.
 3. **Approvers decide, and may say no.** An approval is permission, not an obligation. A denial is recorded as a denial.
-4. **Negotiation protects the company.** Keep terms close to the standard. The seller, not the AI, decides whether to ask for a different position after a denial.
-5. **Record what was said, not what was meant.** Conditions, limits and caveats are quoted. If a reply is ambiguous, the record flags it instead of rounding it up to an approval.
-6. **Flag instead of assuming.** When authority is unclear, information conflicts or an approval is incomplete, the AI speaks up.
+4. **Negotiation protects the company.** Keep terms close to the standard. The seller, not the AI, decides whether to appeal a denial or propose a different position in a new round.
+5. **Record what was said, not what was meant.** Conditions, limits and caveats are quoted. Anything short of a clear decision is not an approval.
+6. **Flag instead of assuming.** When authority is unclear or an approval is incomplete, the app says so.
 7. **The seller concedes only what was approved.**
 
 ## The parts
@@ -33,42 +33,44 @@ The record is proof of authority for the changes. It is not proof of the changes
 | Process settings | Who requests, who owns the matrix, who keeps records, who checks before signature, and the approvals mailbox | `settings.csv` |
 | The standard agreement | The positions every change is measured against | Your standard contract |
 | The deal profile | Customer, fees, term, strategic or standard, upside, competition, data types, precedent. Normally comes from the CRM | `docs/deal-profile.md` |
-| The prompts | Standing instructions and four stage prompts, neutral to contract type | `playbook/` |
+| The prompts | The app's own prompts, and a manual version of the process for any AI chat | `app/prompts/`, `playbook/` |
 | The AI environment | The model that runs the prompts, qualified and approved before real use | `docs/ai-environment.md` |
 | The approval record | The output, with a fixed format and status vocabulary | `docs/approval-record.md` |
-| The seller app | A local web app that walks a seller through the steps | `app/` |
+| The app | The seller's screens, the approver portal and the audit page | `app/` |
+| The approvals ledger | Append-only history of decisions and records | `docs/audit-and-ledger.md` |
 
 ## Who does what
 
 | Role | Responsibility |
 |---|---|
-| Requester (for example the Account Executive) | Hands over the contract, confirms the requests, decides next moves, and concedes only approved items |
-| Approver | Decides each request that names their title. Replies to the approvals mailbox |
+| Requester (for example the Account Executive) | Hands over the contract, watches status, may appeal a denial, and concedes only approved items |
+| Approver | Decides each request that names their title, in the portal |
+| Deal Desk, or whoever handles terms not in the matrix | Finds out what is needed for a change the matrix does not settle, and records the outcome and the authority relied on |
 | Matrix owner (for example the General Counsel) | Owns the matrix and rules on anything it does not cover |
 | Record custodian (for example the Contracts Manager) | Files the original replies, the approval record and the signed contract together |
 | Pre-signature check (for example the Deal Desk Manager) | Checks the final contract against the approvals before signature |
-| The AI partner | Identifies, locates, drafts and records. Holds no authority |
+| The AI partner | Names the covering level and explains the change. Holds no authority |
 
 ## How a deviation moves
 
-1. **Identify.** Compare the contract under review with the standard. List every changed term, and treat parts in the same matrix cell with the same approvers as one change.
-2. **Locate.** Find each change's matrix row, level and approver. Flag anything the matrix does not cover.
-3. **Draft.** Write one request per approver that stands alone, with the change quoted, the deal context and the exact question.
-4. **Send.** The seller confirms one batch. Requests go to the approver, copying the seller and the approvals mailbox.
-5. **Record.** Approvers reply to the approvals mailbox. The AI checks the sender against the people list and the title against the routing, then records each decision with the approver's words.
-6. **Follow up.** A request nobody answers is reminded on a business-day schedule, then escalated to the seller and the matrix owner together, and to a standing fallback contact if the approver has one. For other open items, the AI drafts rulings requests and re-sends to the right title. After a denial, only the seller can ask for a different position.
-7. **Final check.** The seller states what the final contract says. Every change is checked against its approval, and the outcome is recorded as conceded as approved, not conceded, or conceded differently.
+1. **Identify.** Code compares the uploaded contract with the standard and lists every difference.
+2. **Locate.** Code places each change on a matrix row. One AI reading per contract names the level; code checks it and takes the approvers from the matrix cell.
+3. **Request.** Code writes one request per approver from a fixed template, with the change quoted, the deal context and the exact question.
+4. **Send.** By default requests go out once every recipient matches a known approver, copying the seller and the approvals mailbox. An organization can require one confirmation.
+5. **Decide.** The approver signs in to the portal and approves, approves with conditions, denies, delegates or asks a question.
+6. **Follow up.** A silent request is reminded on a business-day schedule, then escalated to the seller and the matrix owner together, and to a standing fallback contact if the approver has one. The seller may appeal a denial once.
+7. **Record and check.** Code builds the approval record. The seller uploads the final contract, and code passes it only if every change in it was approved in those words.
 
 ## Decision statuses
 
-Approved, Approved (pre-approved), Conditional, Partial, Unclear, Missing co-approval, Wrong authority, Authority unclear, Not in matrix, Not approvable, Denied. Their meaning and the ambiguity rules are in `docs/escalation-path.md` and `docs/approval-record.md`.
+Approved, Approved (pre-approved), Conditional, Missing co-approval, Awaiting reply, Appeal pending, Referred to Deal Desk, Not approvable and Denied. The manual playbook adds statuses for ambiguous email replies. Their meaning and the ambiguity rules are in `docs/escalation-path.md` and `docs/approval-record.md`.
 
 ## Controls
 
 - **Setup gate for the AI environment.** Before a real deal goes in, the environment needs written zero data retention or a private instance, no training on inputs, confidentiality that covers customer terms, access control and audit, known data location and deletion, a recorded sign-off, and a business account. See `docs/ai-environment.md`.
-- **Qualification run.** Before real use, run the worked Case 1 on the chosen model and compare the record with its answer key. A model that misses changes, picks authority levels itself or reads silence as approval is not fit.
+- **Qualification run.** Before real use, run the worked Case 1 on the chosen model and compare the record with its answer key. A model that misses changes or names the wrong covering level is not fit.
 - **Answer keys stay hidden** from the AI and from testers.
-- **Human confirmation** before anything is sent.
+- **Recipients checked in code** before anything is sent, with an optional confirmation click.
 - **Stand-in data banner** in the app while the gate is not passed.
 
 ## How it grows
@@ -79,10 +81,10 @@ The framework starts manual and matures. People decide every deviation at first.
 
 - The worked example uses three fictional cases and a small number of runs. It shows the method works, not how often.
 - Approvers decide in a portal. Email carries only a link. Single sign-on beyond a proxy header is designed, not built. Demo mode has the AI play the approvers, and labels everything it produces as simulated.
-- Matching a reply to its request at scale is hard. A unique request ID is designed but not yet built.
-- The record proves linkage between request and reply, not that a reply is authentic.
+- The app decides only on what is entered in the portal. Email replies are not read.
+- The record is only as trustworthy as the sign-in method that identifies the approver.
 - Later rounds and the signed-copy check work from uploaded Word, PDF or text files. A scanned signed copy cannot be checked, and a round continues from an earlier upload that you choose by hand.
-- Only text contracts are handled. Tracked-changes Word files are read through a text form.
+- Changes can be placed on the matrix only in Word files. Every change in a PDF or text upload is referred.
 
 ## Adapting the framework
 

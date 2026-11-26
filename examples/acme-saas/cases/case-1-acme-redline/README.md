@@ -4,13 +4,13 @@
 |---|---|
 | Customer | Brightwater Logistics, Inc. (fictional) |
 | Paper | ACME's standard SaaS Agreement |
-| What the AI reads first | Brightwater's redline of ACME's agreement |
+| What the app reads | `inputs/Brightwater_Redline_of_ACME_SaaS_Agreement.docx` |
 | Requester | Account Executive |
-| Status | Design locked. Inputs, approvals and answer key to be written and frozen by December 4, 2026 |
+
+**What it tests.** A small redline with routine changes.
 
 ## Folder contents
 
-- `inputs/deal-profile.md`: the deal profile the seller provides at intake (see `docs/deal-profile.md`)
-- `inputs/`: the redlined agreement the requester submits
-- `approvals/`: the approvals as they came back, one file per message
-- `answer-key.md`: the expected approval record, used for grading. **Testers and the AI must not see it before a run.**
+- `inputs/`: the Word redline, the deal profile, and any earlier text drafts
+- `approvals/`: replies written for the earlier manual version, one file per message. In the app, only the assigned approver can decide, in the portal.
+- `answer-key.md`: the expected result of the manual version, useful for checking levels and approvers. Do not read it before a run you intend to grade.

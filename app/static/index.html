@@ -105,7 +105,8 @@ function home(){
   h+='<p class="sub" style="max-width:640px;font-size:15px">When a customer changes the contract, this assistant finds each change, looks up who has authority to approve it, drafts the request, and records what each approver actually decided. You negotiate. Approvers decide. The record is proof of authority for the changes, not proof of the changes.</p>';
   h+='<div class="bigtiles"><button class="tile big" onclick="gotoContracts(\'demo\')"><b>Start Here: Demo (Staged Examples)</b><span>Run the whole process on a prepared case. Kept apart from your own contracts.</span></button><button class="tile big" onclick="gotoContracts(\'real\')"><b>Seller\'s Associate: Your Contracts</b><span>Upload a redline, or pick up one you\'ve already started.</span></button></div>';
   h+='<div class="tiles small"><a class="tile" href="/files/standard.docx"><b>Download ACME\'s standard contract</b><span>The base terms every change is measured against.</span></a><button class="tile" onclick="go(-3)"><b>Approval matrix</b><span>Who may approve what.</span></button><a class="tile" href="/audit"><b>Audit the approvers</b><span>For the matrix owner.</span></a><button class="tile" onclick="go(-4)"><b>How it works</b><span>The steps and who does what.</span></button></div>';
-  h+='<p class="tag" style="margin-top:14px">Demo environment: fictional customers, simulated mailbox, nothing is sent.</p></div>';
+  if(S&&S.mode==='demo')h+='<p class="tag" style="margin-top:14px">Demo mode: fictional customers, simulated approvers, nothing is sent.</p>';
+  h+='</div>';
   return h}
 var CTX='real';try{CTX=sessionStorage.getItem('ctx')||'real'}catch(e){}
 function gotoContracts(c){CTX=c;try{sessionStorage.setItem('ctx',c)}catch(e){}NOTICE='';ARCHIVING=null;cur=0;userPicked=true;draw()}
@@ -120,7 +121,7 @@ function demoPicker(){
     h+='<p><select id="casesel" onchange="pickCase(this.value)">'+Object.keys(S.cases).map(function(k){return '<option value="'+k+'"'+(k===id?' selected':'')+'>'+esc(S.cases[k].title)+'</option>'}).join('')+'</select></p>';
     h+='<p>'+c.links.map(function(l){return '<a href="'+l.href+'" target="_blank">'+esc(l.label)+'</a>'}).join(' &nbsp;|&nbsp; ')+'</p>';
     h+='<h3>Deal profile</h3>'+pfEditor('profile',prof,false);
-    h+='<div class="row"><button class="go" id="startBtn" onclick="startRun()">Find the changes</button><span class="tag">Takes a few minutes. Nothing is sent to anyone.</span></div></div>';
+    h+='<div class="row"><button class="go" id="startBtn" onclick="startRun()">Find the changes</button><span class="tag">Usually takes under a minute. Nothing is sent to anyone.</span></div></div>';
   
   return h}
 function screens(){
@@ -132,11 +133,11 @@ function screens(){
   if(cur===0)return contractsPage();
   if(cur===1){
     h+=uploadedInfo()+(S.signed_check?'<div class="card"><h2>Signed copy check</h2>'+md(S.signed_check)+'</div>':'');
-    h+='<div class="card"><h2>Summary</h2><p class="sub">What the AI found, who may approve each change, and the requests it drafted. Fix anything it misread before you send.</p>';
-    if(!S.stage3)h+='<p>Nothing yet. Start in step 1.</p>';
+    h+='<div class="card"><h2>Summary</h2><p class="sub">Every change found, who may approve it, and the requests.</p>';
+    if(!S.stage3)h+='<p>Nothing yet. Start on the Contracts page.</p>';
     else{if(S.send_problem)h+='<div class="err">'+esc(S.send_problem)+'</div>';h+='<h3>The changes</h3>'+md(S.stage1)+'<h3>Who may approve</h3>'+md(S.stage2)+'<h3>Batch summary</h3>'+md(batch(S.stage3));
       var rq=requestsOf(S.stage3);h+='<details><summary>Read the '+rq.length+' drafted requests</summary>'+rq.map(function(r){return '<pre class="msg">'+esc(r)+'</pre>'}).join('')+'</details>';
-      h+='<div class="row">'+(S.outbox.length?'<span class="chip ok">Sent</span>':S.send_mode==='auto'&&!S.send_problem?'<span class="tag">Requests are sent automatically.</span>':'<button class="go" onclick="sendAll(\'stage3.md\')">Confirm and send '+rq.length+' requests</button><span class="tag">One confirmation sends all of them to the simulated mailbox.</span>')+'</div>'}
+      h+='<div class="row">'+(S.outbox.length?'<span class="chip ok">Sent</span>':S.send_mode==='auto'&&!S.send_problem?'<span class="tag">Requests are sent automatically.</span>':'<button class="go" onclick="sendAll(\'stage3.md\')">Confirm and send '+rq.length+' requests</button><span class="tag">One confirmation sends all of them.</span>')+'</div>'}
     h+='</div>'}
   if(cur===2){
     var R=S.record||[];
@@ -159,7 +160,7 @@ function screens(){
 function draw(){
   nav();document.getElementById('hdr').innerHTML='<a href="/portal">Approver portal</a> &nbsp;·&nbsp; <a href="'+(S.provider==='none'?'/login">Act as someone else':'/logout">Sign out')+'</a>';var j=S.job,b=document.getElementById('busy');
   var demo=S.mode==='demo',demoBanner=demo?'<div class="busy">Demo mode: simulated approvers, nothing is emailed. Use fictional data only. Records here are not proof of authority.</div>':'';var ev=S.env,banner=demoBanner+(ev.problem?'<div class="err">'+esc(ev.problem)+'</div>':ev.stand_in&&!demo?'<div class="busy">Stand-in data only. Model: '+esc(ev.backend)+(ev.model?' / '+esc(ev.model):'')+'. Do not enter a real customer\'s contract.</div>':'');
-  b.innerHTML=banner+(cur<1?'':j.status==='running'?'<div class="busy">Working: '+esc(j.message)+'. This takes a few minutes.</div>':j.status==='error'?'<div class="err">The step failed.\n'+esc(j.message)+'</div>':'');
+  b.innerHTML=banner+(cur<1?'':j.status==='running'?'<div class="busy">Working: '+esc(j.message)+'. This usually takes under a minute.</div>':j.status==='error'?'<div class="err">The step failed.\n'+esc(j.message)+'</div>':'');
   document.getElementById('screen').innerHTML=screens();pfSize();
   /* only a contract's own screens wait for its analysis; the Contracts page never does */
   var d=document.querySelectorAll('button.go');d.forEach(function(x){x.disabled=cur>=1&&j.status==='running'})}
@@ -199,9 +200,9 @@ document.addEventListener('drop',function(e){var z=e.target.closest&&e.target.cl
   var f=e.dataTransfer&&e.dataTransfer.files[0];if(!f)return;CHOSEN=f;try{var dt=new DataTransfer();dt.items.add(f);document.getElementById('ufile').files=dt.files}catch(x){}showChosen()});
 var KINDS={'docx-tracked':'Word file with tracked changes','docx-clean':'Word file with no tracked changes','pdf':'PDF','text':'Plain text'};
 function uploadCard(){
-  var h='<div class="card"><h2>Upload a contract</h2><p class="sub">The customer sent a redline, or their own paper. Upload it and the app compares it with ACME\'s standard before the AI starts. Word files with tracked changes work best.</p>';
+  var h='<div class="card"><h2>Upload a contract</h2><p class="sub">Upload ACME\'s standard agreement with the customer\'s changes. The app compares it with the standard before the AI starts. Word files with tracked changes work best.</p>';
   h+='<div id="udrop" class="drop"><input type="file" id="ufile" accept=".docx,.pdf,.txt,.md"><div id="uname" class="tag">'+chosenText()+'</div></div>'+roundPicker()+'<h3>The deal</h3><p class="tag">These facts go to the approvers and to the audit record. In real use they come from the CRM. For a later round, leave them blank to keep the earlier ones.</p><div class="row"><input id="dcust" placeholder="Customer" style="flex:2;min-width:160px"><input id="dfees" placeholder="Annual fees, for example 250000" inputmode="decimal" style="flex:2;min-width:160px"><input id="dterm" placeholder="Term in months" inputmode="numeric" style="flex:1;min-width:110px"><select id="dtier"><option value="">Standard or strategic</option><option value="standard">Standard</option><option value="strategic">Strategic</option></select></div><h3>Other deal facts</h3>'+pfEditor('uprofile',PROFILE_TEMPLATE,true);
-  h+='<div class="row"><button class="go" onclick="uploadContract()">Upload and find the changes</button><span class="tag">Takes a few minutes. Requests go to approvers automatically unless the app is set to wait for your click.</span></div>';
+  h+='<div class="row"><button class="go" onclick="uploadContract()">Upload and find the changes</button><span class="tag">Usually takes under a minute. Requests go to approvers automatically unless the app is set to wait for your click.</span></div>';
   return h+'</div>'}
 function uploadedInfo(){
   var u=S.upload;if(!(u&&S.case.id==='upload'))return '';

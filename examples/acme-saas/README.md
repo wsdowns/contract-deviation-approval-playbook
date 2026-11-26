@@ -7,7 +7,7 @@ By William Scott Downs. A complete example of the playbook for outbound SaaS sel
 | Path | Contents |
 |---|---|
 | `contracts/ACME_SaaS_Agreement_v1.0.docx` | ACME's standard SaaS Agreement (seller paper), adapted from the Common Paper Cloud Service Agreement v3.0 |
-| `contracts/Lakeshore_Health_SaaS_Agreement.docx` | A customer-favorable SaaS agreement from a fictional health system (customer paper), written for this project |
+| `contracts/Lakeshore_Health_SaaS_Agreement.docx` | A customer-favorable SaaS agreement from a fictional health system (customer paper), written for this project. Kept for reference: the app does not run customer paper |
 | `contracts/reference/` | The unmodified Common Paper original |
 | `doa-matrix/` | ACME's DoA matrix: `doa_matrix.csv`, `roles.csv`, `people.csv`, and the built workbook |
 | `cases/` | The three test cases, each with inputs, approvals as received, and an answer key |
@@ -15,11 +15,13 @@ By William Scott Downs. A complete example of the playbook for outbound SaaS sel
 
 ## The cases
 
-| Case | Deal | Paper | What the AI reads first |
-|---|---|---|---|
-| 1 | Brightwater Logistics, $20K a year, standard | ACME's standard SaaS Agreement | The customer's redline |
-| 2 | Lakeshore Health, $1M a year, strategic | Lakeshore Health SaaS Agreement | The agreement at receipt (no redline) |
-| 3 | Summit Ridge Manufacturing, $250K a year, standard with upside | ACME's standard SaaS Agreement | The customer's redline |
+| Case | Deal | What it tests in the app |
+|---|---|---|
+| 1 | Brightwater Logistics, $20K a year, standard | A small redline with routine changes |
+| 2 | Lakeshore Health, $1M a year, strategic | Not approvable and unclear terms alongside routed ones |
+| 3 | Summit Ridge Manufacturing, $250K a year, standard | A shared payment paragraph, a joint approval and a Level 3 approval |
+
+All three are Word redlines of ACME's agreement with tracked changes. The answer keys and `approvals/` messages were written for the earlier, manual version of the process, which read email replies.
 
 Deal size changes what is realistic to ask and to approve, so each case ships with a deal profile (`inputs/deal-profile.md`).
 

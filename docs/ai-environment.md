@@ -16,7 +16,7 @@ The playbook sends a company's contract terms, pricing, deal facts and approvers
 
 ## Fit for the task
 
-Passing the gate makes an environment safe, not good. Before real use, **qualify the model**: run Case 1 from the examples folder, a stand-in with a known answer, and compare the record with its answer key. A model that misses changes, picks authority levels on its own, or reads silence as approval is not fit, however private it is.
+Passing the gate makes an environment safe, not good. Before real use, **qualify the model**: run Case 1 from the examples folder, a stand-in with a known answer, and compare the record with its answer key. In the app, code finds the changes and names the approvers, so check that the model names the right level for each. If you run the prompts by hand, a model that misses changes, picks authority levels on its own, or reads silence as approval is not fit, however private it is.
 
 The model must also hold the whole input in one conversation: the standard agreement, the matrix files, the deal profile and the contract under review.
 
@@ -24,6 +24,6 @@ The model must also hold the whole input in one conversation: the standard agree
 
 Add to every approval record header: the AI environment used (name, version, date), and who approved it.
 
-## What this project did
+## What this project uses
 
-The runs in this package used only fictional stand-in data, so the gate was not required for them. The model was reached through a command-line client on the author's own account. That setup would **not** qualify for a real deal until requirements 1 to 6 were confirmed.
+The examples, the staged demo and the private deployment use only fictional data, so the gate has not been passed for any environment here. Do not enter a real contract until requirements 1 to 7 are confirmed for yours.

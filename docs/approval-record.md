@@ -16,41 +16,32 @@ For each deviation, the record is a chain of links. If a link is missing or does
 
 ## Columns
 
+The app builds the record with these columns.
+
 | Column | Meaning |
 |---|---|
-| ID | The deviation's ID from Stage 1, including sub-items such as 4a |
-| Change | The requested change, with the clause reference |
+| ID | The change's ID |
+| Change | A short name for the change |
 | Matrix row and level | The row and the level that covers the change |
-| Approver | Name and title of each person who replied, or "no reply yet" |
-| Decision | The reply in exact words |
-| Date and time | When the reply was sent |
-| Evidence | A reference to the message (file name or message ID). A hash of the message file can be added by tooling so later edits are detectable |
-| Status | One of the statuses below |
-| Conditions | Any condition or limit, in exact words |
-| Final outcome | Conceded as approved, Not conceded, or Conceded differently. Filled in once the final contract is reported |
-| Notes | Flags, prerequisites shown or missing, and anything a human must settle |
+| Approver (name, title) | Each person who decided or is awaited, noting any delegation; or the Deal Desk and the authority it cited |
+| Decision (exact words) | What each person wrote, including an appeal's outcome |
+| Status | One of the statuses in [escalation-path.md](escalation-path.md) |
+| Conditions (exact words) | Any condition or limit |
+| Final outcome | Filled in by the final check: whether the change is in the final contract, and if so whether it is covered |
+| Notes | Simulated approvals, appeals, decision time and flags |
 
-## Statuses
+Under the table the record lists draft seller notes for denials and any request still open.
 
-Approved, Conditional, Partial, Unclear, Missing co-approval, Wrong authority, Authority unclear, Not in matrix, Not approvable, Denied. The meaning of each, and what happens next, is in [escalation-path.md](escalation-path.md). A change that the matrix pre-approves is recorded as **Approved (pre-approved)**, naming the role.
+## Header and version
 
-## Header
-
-Each record begins with:
-
-- the customer, deal value and date;
-- the matrix version it was checked against (a commit or file hash);
-- who prepared it and who confirmed the requests;
-- the record custodian and the pre-signature check role.
-
-Pinning the matrix version means that if the matrix changes later, the record still shows which rules applied.
+A demo record begins with a SIMULATED APPROVERS warning. The ledger stores the matrix version (a hash of the matrix files) and the deal facts with each record, so a later matrix change does not rewrite which rules applied. Printing the customer, deal value, matrix version and the AI environment at the top of the record itself is not built yet; when filing a record by hand, add them.
 
 ## Where it is kept
 
-The record custodian stores the record with the evidence (the original messages) and the signed contract, as one file. In this repository, a case's record would sit in `runs/` with the run that produced it.
+The app saves the record in the deal's run folder and adds it to the ledger. The record custodian files it with the evidence and the signed contract.
 
 ## What the record is not
 
 - It does not show that a change was made in the contract. Final outcome shows that, separately.
-- It does not show that an email is genuine. Sender authentication belongs to the email system. In a real organization, approvals should arrive through a controlled channel.
+- It does not prove who was at the keyboard. That rests on the sign-in method, so use single sign-on or well-managed logins.
 - It is not an argument for approval. It records decisions that were made.

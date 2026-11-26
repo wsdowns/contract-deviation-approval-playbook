@@ -5,7 +5,7 @@ This guide takes you from a fresh download to a first run. Each step says what t
 ## 1. What you need
 
 - Python 3.11 or later.
-- Your organization's standard agreement as a text file, plus an optional Word copy for sellers to download.
+- Your organization's standard agreement as a text file and as a Word file with headings.
 - Your delegation of authority matrix, or the willingness to write one.
 - Access to an AI model: the `claude` command, an API key, a server you run (open weights are fine), or any program that reads a prompt and prints an answer.
 - For real deals only: an AI environment that passes the setup gate in `docs/ai-environment.md`.
@@ -13,7 +13,7 @@ This guide takes you from a fresh download to a first run. Each step says what t
 ## 2. Install
 
 ```bash
-git clone <this repository>
+git clone https://github.com/wsdowns/contract-deviation-approval-playbook.git
 cd contract-deviation-approval-playbook
 pip install -r requirements.txt
 ```
@@ -26,7 +26,7 @@ Check: `python -m pytest -q tests` reports all tests passing.
 python app/server.py
 ```
 
-Open http://localhost:8765. You should see the ACME home page with a "Stand-in data only" banner. Open a finished example to see a complete run. Opening one does not call any AI.
+Open http://localhost:8765. You should see the home page with a "Demo mode" banner. Choose Start Here: Demo (Staged Examples) and start Case 1. It calls your model, so set the model first (step 6) if you do not use the `claude` command.
 
 ## 4. Build your matrix
 
@@ -47,7 +47,7 @@ Edit in Excel if you prefer, then save as CSV (UTF-8) and validate again. The CS
 
 ## 5. Add your standard agreement
 
-Save it as plain text, with clause numbers kept, for example `contracts/our_standard.txt`. If you want sellers to download it from the app, also keep a Word copy.
+Save it as plain text, for example `contracts/our_standard.txt`, and keep the Word copy sellers will download. In the matrix, fill `Contract location` (and `Keywords` where rows share a place) so code can place each change; see `docs/matrix-format.md`, and run `python tools/doa_matrix.py validate my-matrix --standard contracts/our_standard.docx`.
 
 ## 6. Choose and configure the model
 
@@ -102,7 +102,7 @@ Every portal decision, every approval record and every deal is added to `ledger.
 
 ## 7. Qualify the model
 
-A model that passes the privacy gate can still be unfit for the task. Run Case 1 in the app, and compare the approval record with `examples/acme-saas/cases/case-1-acme-redline/answer-key.md`. Do not read the key before the run. The model is fit if it finds every change, takes each approver from the matrix, and never reads silence as approval. Qualify again when you change models.
+A model that passes the privacy gate can still be unfit for the task. Run Case 1 in the app, and compare the changes found, the levels and the approvers with `examples/acme-saas/cases/case-1-acme-redline/answer-key.md`. Do not read the key before the run. Code finds the changes and names the approvers, so the model is judged on whether it names the right level for each change. The key was written for the manual process, so compare levels and approvers, not wording. Qualify again when you change models.
 
 Note: your own matrix has no answer key, so qualification runs on the ACME case. If you replace the example case, write a key for your own case first.
 
@@ -112,20 +112,19 @@ Fill in `[environment]` in `config.toml`: the environment name and version, who 
 
 ## 9. Run a real deal
 
-1. Prepare the deal profile from your CRM.
-2. On the first screen, choose "Upload a contract" and pick the file the customer sent: a Word file with tracked changes works best. The app compares it with your standard agreement before the AI starts, and tells you if any text changed without being tracked.
-3. Follow the steps on screen. Requests go to approvers under the send mode you set.
-4. When the customer sends the next round, upload it and choose "A later round of" the earlier upload. The app shows what is new this round, and the AI marks each change as new, already decided, changed since it was decided, or reinserted after a denial. Only the ones that need a decision go to approvers.
-5. When the signed copy comes back, upload it, choose the last agreed round, and tick "This is the signed copy". The app says whether it matches that draft exactly, and the AI checks every change against the approvals.
-6. At the end, file the approval record, the original replies and the signed contract together, as the record custodian.
+1. Gather the deal facts from your CRM.
+2. On the Contracts page, upload the file the customer sent (a Word file with tracked changes works best) and enter the deal facts. The app compares it with your standard agreement before the AI starts, and tells you if any text changed without being tracked.
+3. Follow the screens. Requests go to approvers under the send mode you set.
+4. When the customer sends the next round, upload it and choose "A later round of" the earlier upload. Changes already approved and unchanged are carried forward; only the ones that need a decision go to approvers.
+5. Before signature, upload the final revision on the Final Check screen. To check a signed copy, upload it, choose the last agreed round, and tick "This is the signed copy".
+6. File the approval record and the signed contract together, as the record custodian, then archive the deal.
 
 ## What is not set up yet
 
-- Reminders and escalation when an approver is silent.
 - The OIDC sign-in provider.
-- The unique request ID.
 - A blank starter matrix folder. Copy the ACME example for now.
-- An automated qualification check. Compare the record with the key by hand.
+- An automated qualification check. Compare with the key by hand.
+- Deterministic rules. See `docs/deterministic-rules.md`.
 
 ## If something goes wrong
 
